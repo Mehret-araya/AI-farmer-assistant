@@ -2,6 +2,7 @@
   "name": "ai-farmer-assistant-server",
   "version": "1.0.0",
   "description": "Backend API for AI Farmer Assistant",
+  "type": "module",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
