@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import CropsPage from "./pages/CropsPage";
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route
+  path="/crops"
+  element={
+    <ProtectedRoute>
+      <CropsPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/dashboard"
