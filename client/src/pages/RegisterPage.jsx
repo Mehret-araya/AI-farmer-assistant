@@ -9,6 +9,7 @@ function RegisterPage() {
     location: "",
     farmSize: "",
     language: "en",
+    privacyConsent: false,
   });
 
   const [message, setMessage] = useState("");
@@ -16,11 +17,11 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
 
     setFormData((previousData) => ({
       ...previousData,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -48,6 +49,7 @@ function RegisterPage() {
         location: "",
         farmSize: "",
         language: "en",
+        privacyConsent: false,
       });
     } catch (err) {
       setError(err.message || "Registration failed.");
@@ -157,6 +159,28 @@ function RegisterPage() {
             <option value="hi">Hindi</option>
             <option value="es">Spanish</option>
           </select>
+        </div>
+
+        <br />
+
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              name="privacyConsent"
+              checked={formData.privacyConsent}
+              onChange={handleChange}
+              required
+            />{" "}
+            I agree to the{" "}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Privacy Policy
+            </a>
+          </label>
         </div>
 
         <br />
