@@ -76,3 +76,43 @@ export const uploadCropImage = async (req, res) => {
     });
   }
 };
+
+
+// Get all images belonging to a crop
+export const getCropImages = async (req, res) => {
+  try {
+    const { cropId } = req.params;
+
+    // Check that the crop belongs to the logged-in user
+    const crop = await Crop.findOne({
+      _id: cropId,
+      userId: req.user.userId,
+    });
+
+    if (!crop) {
+      return res.status(404).json({
+        success: false,
+        message: "Crop not found",
+      });
+    }
+
+    // Get images for this crop
+    const images = await CropImage.find({
+      cropId: crop._id,
+      userId: req.user.userId,
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      images,
+    });
+  } catch (error) {
+    console.error("Get crop images error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while retrieving crop images",
+    });
+  }
+};
+

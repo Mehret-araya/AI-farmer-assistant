@@ -1,19 +1,56 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { compressImage } from "../utils/imageCompression";
-import { uploadCropImage } from "../api/cropImage";
 import {
-  addImageToQueue,
-} from "../storage/offlineDb";
+  uploadCropImage,
+  getCropImages,
+} from "../api/cropImage";
+import { addImageToQueue } from "../storage/offlineDb";
 import { isOnline } from "../utils/network";
 
 function CropImageUpload({ cropId }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [compressedImage, setCompressedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
+
+  const [images, setImages] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingImages, setLoadingImages] = useState(true);
+
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  const loadImages = async () => {
+    try {
+      setLoadingImages(true);
+      setError("");
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("You must be logged in.");
+      }
+
+      if (!cropId) {
+        throw new Error("Crop ID is missing.");
+      }
+
+      const data = await getCropImages(cropId, token);
+
+      setImages(data.images || []);
+    } catch (err) {
+      setError(
+        err.message || "Failed to load crop images."
+      );
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  useEffect(() => {
+    loadImages();
+  }, [cropId]);
 
   const handleImageChange = async (event) => {
     const file = event.target.files?.[0];
@@ -44,7 +81,9 @@ function CropImageUpload({ cropId }) {
 
       setMessage("Image compressed successfully.");
     } catch (err) {
-      setError(err.message || "Unable to compress image.");
+      setError(
+        err.message || "Unable to compress image."
+      );
     } finally {
       setLoading(false);
     }
@@ -73,7 +112,7 @@ function CropImageUpload({ cropId }) {
     setUploading(true);
 
     try {
-      // OFFLINE
+      // Offline: save image to IndexedDB
       if (!isOnline()) {
         await addImageToQueue({
           cropId,
@@ -87,7 +126,7 @@ function CropImageUpload({ cropId }) {
         return;
       }
 
-      // ONLINE
+      // Online: upload to server
       const data = await uploadCropImage(
         cropId,
         compressedImage,
@@ -95,10 +134,16 @@ function CropImageUpload({ cropId }) {
       );
 
       setMessage(
-        data.message || "Crop image uploaded successfully."
+        data.message ||
+          "Crop image uploaded successfully."
       );
+
+      // Reload gallery after successful upload
+      await loadImages();
     } catch (err) {
-      setError(err.message || "Image upload failed.");
+      setError(
+        err.message || "Image upload failed."
+      );
     } finally {
       setUploading(false);
     }
@@ -125,7 +170,10 @@ function CropImageUpload({ cropId }) {
           <img
             src={previewUrl}
             alt="Selected crop"
-            style={{ maxWidth: "300px" }}
+            style={{
+              maxWidth: "300px",
+              display: "block",
+            }}
           />
         </div>
       )}
@@ -164,6 +212,50 @@ function CropImageUpload({ cropId }) {
         <p style={{ color: "red" }}>
           {error}
         </p>
+      )}
+
+      <hr />
+
+      <h2>Crop Image Gallery</h2>
+
+      {loadingImages ? (
+        <p>Loading images...</p>
+      ) : images.length === 0 ? (
+        <p>No images uploaded for this crop yet.</p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: "20px",
+          }}
+        >
+          {images.map((image) => (
+            <div key={image._id}>
+              <img
+                src={image.imageUrl}
+                alt="Crop"
+                style={{
+                  width: "100%",
+                  maxWidth: "300px",
+                  height: "200px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                }}
+              />
+
+              <p>
+                Uploaded:{" "}
+                {image.createdAt
+                  ? new Date(
+                      image.createdAt
+                    ).toLocaleDateString()
+                  : "Unknown"}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

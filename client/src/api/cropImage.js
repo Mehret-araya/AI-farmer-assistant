@@ -1,6 +1,12 @@
+
 const API_URL = "http://localhost:5000";
 
-export const uploadCropImage = async (cropId, imageFile, token) => {
+// Upload a crop image
+export const uploadCropImage = async (
+  cropId,
+  imageFile,
+  token
+) => {
   const formData = new FormData();
 
   formData.append("image", imageFile);
@@ -19,7 +25,32 @@ export const uploadCropImage = async (cropId, imageFile, token) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Image upload failed");
+    throw new Error(
+      data.message || "Image upload failed"
+    );
+  }
+
+  return data;
+};
+
+// Get all images for a crop
+export const getCropImages = async (cropId, token) => {
+  const response = await fetch(
+    `${API_URL}/crops/${cropId}/images`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Failed to get crop images"
+    );
   }
 
   return data;
