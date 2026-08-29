@@ -5,6 +5,7 @@ import {
   updateCrop,
   deleteCrop,
 } from "../api/crop";
+import CropImageUpload from "../components/CropImageUpload";
 
 function CropsPage() {
   const [crops, setCrops] = useState([]);
@@ -312,7 +313,10 @@ function CropsPage() {
                 {crop.farmSize} hectares
               </p>
 
-              <button type="button" onClick={() => handleEdit(crop)}>
+              <button
+                type="button"
+                onClick={() => handleEdit(crop)}
+              >
                 Edit
               </button>{" "}
 
@@ -322,6 +326,11 @@ function CropsPage() {
               >
                 Delete
               </button>
+
+              <br />
+              <br />
+
+              <CropImageUpload cropId={crop._id} />
 
               <hr />
             </div>
@@ -333,3 +342,4 @@ function CropsPage() {
 }
 
 export default CropsPage;
+

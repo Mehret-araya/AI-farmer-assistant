@@ -7,8 +7,10 @@ import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import CropsPage from "./pages/CropsPage";
+import useOfflineSync from "./hooks/useOfflineSync";
 
 function App() {
+  useOfflineSync();
   return (
     <BrowserRouter>
       <Routes>

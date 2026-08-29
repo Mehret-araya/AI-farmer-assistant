@@ -1,4 +1,5 @@
 import { useAuth } from "../context/AuthContext";
+import CropImageUpload from "../components/CropImageUpload";
 
 function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -22,6 +23,7 @@ function DashboardPage() {
           Welcome to your AI Farmer Assistant dashboard.
         </p>
 
+        {/* Profile */}
         <div className="mt-8 rounded-lg bg-white p-6 shadow">
           <h2 className="text-2xl font-semibold text-green-700">
             Your Profile
@@ -37,7 +39,8 @@ function DashboardPage() {
             </p>
 
             <p>
-              <strong>Location:</strong> {user.location || "Not provided"}
+              <strong>Location:</strong>{" "}
+              {user.location || "Not provided"}
             </p>
 
             <p>
@@ -55,6 +58,12 @@ function DashboardPage() {
           </div>
         </div>
 
+        {/* Image compression test */}
+        <div className="mt-8 rounded-lg bg-white p-6 shadow">
+          <CropImageUpload />
+        </div>
+
+        {/* Logout */}
         <button
           onClick={logout}
           className="mt-6 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700"
@@ -67,3 +76,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
