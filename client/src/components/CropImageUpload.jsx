@@ -1,9 +1,14 @@
+
 import { useEffect, useState } from "react";
 import { compressImage } from "../utils/imageCompression";
 import {
   uploadCropImage,
   getCropImages,
 } from "../api/cropImage";
+import {
+  analyzeCropImage,
+  getCropAnalyses,
+} from "../api/diseaseAnalysis";
 import { addImageToQueue } from "../storage/offlineDb";
 import { isOnline } from "../utils/network";
 
@@ -13,10 +18,12 @@ function CropImageUpload({ cropId }) {
   const [previewUrl, setPreviewUrl] = useState("");
 
   const [images, setImages] = useState([]);
+  const [analyses, setAnalyses] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [analyzingImageId, setAnalyzingImageId] = useState(null);
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -36,9 +43,13 @@ function CropImageUpload({ cropId }) {
         throw new Error("Crop ID is missing.");
       }
 
-      const data = await getCropImages(cropId, token);
+      const [imageData, analysisData] = await Promise.all([
+        getCropImages(cropId, token),
+        getCropAnalyses(cropId, token),
+      ]);
 
-      setImages(data.images || []);
+      setImages(imageData.images || []);
+      setAnalyses(analysisData.analyses || []);
     } catch (err) {
       setError(
         err.message || "Failed to load crop images."
@@ -103,7 +114,9 @@ function CropImageUpload({ cropId }) {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      setError("You must be logged in to upload an image.");
+      setError(
+        "You must be logged in to upload an image."
+      );
       return;
     }
 
@@ -138,7 +151,6 @@ function CropImageUpload({ cropId }) {
           "Crop image uploaded successfully."
       );
 
-      // Reload gallery after successful upload
       await loadImages();
     } catch (err) {
       setError(
@@ -147,6 +159,58 @@ function CropImageUpload({ cropId }) {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleAnalyze = async (imageId) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("You must be logged in.");
+      return;
+    }
+
+    if (!cropId || !imageId) {
+      setError("Crop or image information is missing.");
+      return;
+    }
+
+    if (!isOnline()) {
+      setError(
+        "You are offline. Please connect to the internet before analyzing an image."
+      );
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setAnalyzingImageId(imageId);
+
+    try {
+      const data = await analyzeCropImage(
+        cropId,
+        imageId,
+        token
+      );
+
+      setMessage(
+        data.message ||
+          "Crop image analyzed successfully."
+      );
+
+      await loadImages();
+    } catch (err) {
+      setError(
+        err.message || "Failed to analyze crop image."
+      );
+    } finally {
+      setAnalyzingImageId(null);
+    }
+  };
+
+  const getAnalysisForImage = (imageId) => {
+    return analyses.find(
+      (analysis) => analysis.imageId === imageId
+    );
   };
 
   return (
@@ -231,30 +295,85 @@ function CropImageUpload({ cropId }) {
             gap: "20px",
           }}
         >
-          {images.map((image) => (
-            <div key={image._id}>
-              <img
-                src={image.imageUrl}
-                alt="Crop"
-                style={{
-                  width: "100%",
-                  maxWidth: "300px",
-                  height: "200px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                }}
-              />
+          {images.map((image) => {
+            const analysis = getAnalysisForImage(
+              image._id
+            );
 
-              <p>
-                Uploaded:{" "}
-                {image.createdAt
-                  ? new Date(
-                      image.createdAt
-                    ).toLocaleDateString()
-                  : "Unknown"}
-              </p>
-            </div>
-          ))}
+            return (
+              <div key={image._id}>
+                <img
+                  src={image.imageUrl}
+                  alt="Crop"
+                  style={{
+                    width: "100%",
+                    maxWidth: "300px",
+                    height: "200px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
+                />
+
+                <p>
+                  Uploaded:{" "}
+                  {image.createdAt
+                    ? new Date(
+                        image.createdAt
+                      ).toLocaleDateString()
+                    : "Unknown"}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleAnalyze(image._id)
+                  }
+                  disabled={
+                    analyzingImageId === image._id
+                  }
+                >
+                  {analyzingImageId === image._id
+                    ? "Analyzing..."
+                    : "Analyze Image"}
+                </button>
+
+                {analysis && (
+                  <div>
+                    <h4>Disease Analysis</h4>
+
+                    <p>
+                      <strong>Disease:</strong>{" "}
+                      {analysis.disease}
+                    </p>
+
+                    <p>
+                      <strong>Confidence:</strong>{" "}
+                      {(analysis.confidence * 100).toFixed(
+                        0
+                      )}
+                      %
+                    </p>
+
+                    {analysis.explanation && (
+                      <p>
+                        <strong>Explanation:</strong>{" "}
+                        {analysis.explanation}
+                      </p>
+                    )}
+
+                    {analysis.recommendation && (
+                      <p>
+                        <strong>Recommendation:</strong>{" "}
+                        {analysis.recommendation}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <hr />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -262,3 +381,4 @@ function CropImageUpload({ cropId }) {
 }
 
 export default CropImageUpload;
+
