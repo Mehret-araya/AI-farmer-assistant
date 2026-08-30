@@ -38,8 +38,9 @@ export const analyzeDisease = async (req, res) => {
 
     // 3. Send the image to the AI Gateway
     const aiResult = await analyzeCropImage(
-      image.imageUrl
-    );
+  image.imageUrl,
+  crop.name
+);
 
     // 4. Save the analysis
     const analysis = await DiseaseAnalysis.create({

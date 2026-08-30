@@ -1,26 +1,22 @@
-// AI Gateway
-// Central entry point for all AI services.
-//
-// The disease-analysis controller should communicate with the AI
-// through this module instead of calling an AI provider directly.
-//
-// Later we can connect:
-// 1. A real tomato disease classification model
-// 2. An external computer-vision API
-// 3. An LLM for explanation and recommendations
-//
-// Keeping this gateway separate makes the application easier to
-// maintain and allows us to change AI providers later.
+import cropDiseaseConfig from "../config/cropDiseaseConfig.js";
 
-const ALLOWED_DISEASES = [
-  "Healthy",
-  "Early Blight",
-  "Late Blight",
-  "Uncertain",
-];
+const normalizePrediction = (
+  prediction = {},
+  cropType
+) => {
+  const config = cropDiseaseConfig[cropType];
 
-const normalizePrediction = (prediction = {}) => {
-  const disease = ALLOWED_DISEASES.includes(prediction.disease)
+  if (!config) {
+    return {
+      disease: "Uncertain",
+      confidence: 0,
+      message: `Crop type "${cropType}" is not supported yet.`,
+    };
+  }
+
+  const disease = config.diseases.includes(
+    prediction.disease
+  )
     ? prediction.disease
     : "Uncertain";
 
@@ -29,7 +25,9 @@ const normalizePrediction = (prediction = {}) => {
   return {
     disease,
     confidence:
-      Number.isFinite(confidence) && confidence >= 0 && confidence <= 1
+      Number.isFinite(confidence) &&
+      confidence >= 0 &&
+      confidence <= 1
         ? confidence
         : 0,
     message:
@@ -38,26 +36,53 @@ const normalizePrediction = (prediction = {}) => {
   };
 };
 
-export const analyzeCropImage = async (imageUrl) => {
+export const analyzeCropImage = async (
+  imageUrl,
+  cropType
+) => {
   if (!imageUrl) {
     throw new Error("Image URL is required");
   }
 
-  /*
-   * TEMPORARY AI PROVIDER
-   *
-   * This is intentionally a placeholder until we connect
-   * the real tomato disease classification model.
-   *
-   * The rest of the application already communicates with
-   * the AI through this function.
-   */
+  if (!cropType) {
+    throw new Error("Crop type is required");
+  }
 
+  const normalizedCropType =
+    cropType.toLowerCase().trim();
+
+  const config =
+    cropDiseaseConfig[normalizedCropType];
+
+  if (!config) {
+    return {
+      disease: "Uncertain",
+      confidence: 0,
+      message:
+        "This crop is not supported by the AI system yet.",
+    };
+  }
+
+  if (!config.aiEnabled) {
+    return {
+      disease: "Uncertain",
+      confidence: 0,
+      message:
+        `AI disease detection for ${normalizedCropType} is not available yet.`,
+    };
+  }
+
+  // Temporary AI result.
+  // The real model will be connected later.
   const prediction = {
     disease: "Uncertain",
     confidence: 0,
-    message: "AI disease detection is not connected yet.",
+    message:
+      "Tomato AI model is not connected yet.",
   };
 
-  return normalizePrediction(prediction);
+  return normalizePrediction(
+    prediction,
+    normalizedCropType
+  );
 };

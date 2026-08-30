@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
 
+const SUPPORTED_CROPS = [
+  "tomato",
+  "maize",
+  "wheat",
+  "coffee",
+];
+
 const cropSchema = new mongoose.Schema(
   {
     userId: {
@@ -13,7 +20,10 @@ const cropSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      enum: ["tomato"],
+      lowercase: true,
+      enum: SUPPORTED_CROPS,
+            //enum: ["tomato", "potato", "corn", "wheat", "rice", "apple", "grapes"],  // Add more   if we need it for many crops as we need not only for the tomato
+
       default: "tomato",
     },
 
@@ -52,5 +62,7 @@ const cropSchema = new mongoose.Schema(
 );
 
 const Crop = mongoose.model("Crop", cropSchema);
+
+export { SUPPORTED_CROPS };
 
 export default Crop;
