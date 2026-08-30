@@ -7,6 +7,13 @@ import {
 } from "../api/crop";
 import CropImageUpload from "../components/CropImageUpload";
 
+const SUPPORTED_CROPS = [
+  "tomato",
+  "maize",
+  "wheat",
+  "coffee",
+];
+
 function CropsPage() {
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +22,7 @@ function CropsPage() {
   const [message, setMessage] = useState("");
 
   const [formData, setFormData] = useState({
+    name: "tomato",
     variety: "",
     plantingDate: "",
     growthStage: "",
@@ -59,6 +67,7 @@ function CropsPage() {
 
   const resetForm = () => {
     setFormData({
+      name: "tomato",
       variety: "",
       plantingDate: "",
       growthStage: "",
@@ -82,7 +91,7 @@ function CropsPage() {
       }
 
       const cropData = {
-        name: "tomato",
+        name: formData.name,
         variety: formData.variety,
         plantingDate: formData.plantingDate,
         growthStage: formData.growthStage,
@@ -91,10 +100,16 @@ function CropsPage() {
       };
 
       if (editingCropId) {
-        await updateCrop(editingCropId, cropData, token);
+        await updateCrop(
+          editingCropId,
+          cropData,
+          token
+        );
+
         setMessage("Crop updated successfully.");
       } else {
         await createCrop(cropData, token);
+
         setMessage("Crop added successfully.");
       }
 
@@ -111,6 +126,7 @@ function CropsPage() {
     setEditingCropId(crop._id);
 
     setFormData({
+      name: crop.name || "tomato",
       variety: crop.variety || "",
       plantingDate: crop.plantingDate
         ? crop.plantingDate.split("T")[0]
@@ -159,16 +175,52 @@ function CropsPage() {
     <div>
       <h1>My Crops</h1>
 
-      <p>Manage your tomato crops.</p>
+      <p>
+        Manage your crops and analyze their images for
+        possible diseases.
+      </p>
 
       <hr />
 
-      <h2>{editingCropId ? "Edit Crop" : "Add Tomato Crop"}</h2>
+      <h2>
+        {editingCropId ? "Edit Crop" : "Add Crop"}
+      </h2>
 
       <form onSubmit={handleSubmit}>
+        {/* Crop Type */}
         <div>
-          <label htmlFor="variety">Variety</label>
+          <label htmlFor="name">
+            Crop Type
+          </label>
+
           <br />
+
+          <select
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          >
+            {SUPPORTED_CROPS.map((crop) => (
+              <option key={crop} value={crop}>
+                {crop.charAt(0).toUpperCase() +
+                  crop.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <br />
+
+        {/* Variety */}
+        <div>
+          <label htmlFor="variety">
+            Variety
+          </label>
+
+          <br />
+
           <input
             id="variety"
             name="variety"
@@ -181,9 +233,14 @@ function CropsPage() {
 
         <br />
 
+        {/* Planting Date */}
         <div>
-          <label htmlFor="plantingDate">Planting Date</label>
+          <label htmlFor="plantingDate">
+            Planting Date
+          </label>
+
           <br />
+
           <input
             id="plantingDate"
             name="plantingDate"
@@ -196,29 +253,56 @@ function CropsPage() {
 
         <br />
 
+        {/* Growth Stage */}
         <div>
-          <label htmlFor="growthStage">Growth Stage</label>
+          <label htmlFor="growthStage">
+            Growth Stage
+          </label>
+
           <br />
+
           <select
             id="growthStage"
             name="growthStage"
             value={formData.growthStage}
             onChange={handleChange}
           >
-            <option value="">Select stage</option>
-            <option value="Seedling">Seedling</option>
-            <option value="Vegetative">Vegetative</option>
-            <option value="Flowering">Flowering</option>
-            <option value="Fruiting">Fruiting</option>
-            <option value="Harvest">Harvest</option>
+            <option value="">
+              Select stage
+            </option>
+
+            <option value="Seedling">
+              Seedling
+            </option>
+
+            <option value="Vegetative">
+              Vegetative
+            </option>
+
+            <option value="Flowering">
+              Flowering
+            </option>
+
+            <option value="Fruiting">
+              Fruiting
+            </option>
+
+            <option value="Harvest">
+              Harvest
+            </option>
           </select>
         </div>
 
         <br />
 
+        {/* Location */}
         <div>
-          <label htmlFor="location">Location</label>
+          <label htmlFor="location">
+            Location
+          </label>
+
           <br />
+
           <input
             id="location"
             name="location"
@@ -231,9 +315,14 @@ function CropsPage() {
 
         <br />
 
+        {/* Farm Size */}
         <div>
-          <label htmlFor="farmSize">Farm Size</label>
+          <label htmlFor="farmSize">
+            Farm Size
+          </label>
+
           <br />
+
           <input
             id="farmSize"
             name="farmSize"
@@ -248,7 +337,10 @@ function CropsPage() {
 
         <br />
 
-        <button type="submit" disabled={saving}>
+        <button
+          type="submit"
+          disabled={saving}
+        >
           {saving
             ? "Saving..."
             : editingCropId
@@ -259,7 +351,11 @@ function CropsPage() {
         {editingCropId && (
           <>
             {" "}
-            <button type="button" onClick={resetForm}>
+
+            <button
+              type="button"
+              onClick={resetForm}
+            >
               Cancel
             </button>
           </>
@@ -268,9 +364,17 @@ function CropsPage() {
 
       <br />
 
-      {message && <p style={{ color: "green" }}>{message}</p>}
+      {message && (
+        <p style={{ color: "green" }}>
+          {message}
+        </p>
+      )}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <p style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
 
       <hr />
 
@@ -279,33 +383,48 @@ function CropsPage() {
       {loading ? (
         <p>Loading crops...</p>
       ) : crops.length === 0 ? (
-        <p>You have not added any crops yet.</p>
+        <p>
+          You have not added any crops yet.
+        </p>
       ) : (
         <div>
           {crops.map((crop) => (
             <div key={crop._id}>
-              <h3>🍅 {crop.name}</h3>
+              <h3>
+                🌱{" "}
+                {crop.name
+                  ? crop.name
+                      .charAt(0)
+                      .toUpperCase() +
+                    crop.name.slice(1)
+                  : "Crop"}
+              </h3>
 
               <p>
                 <strong>Variety:</strong>{" "}
-                {crop.variety || "Not specified"}
+                {crop.variety ||
+                  "Not specified"}
               </p>
 
               <p>
                 <strong>Planting Date:</strong>{" "}
                 {crop.plantingDate
-                  ? new Date(crop.plantingDate).toLocaleDateString()
+                  ? new Date(
+                      crop.plantingDate
+                    ).toLocaleDateString()
                   : "Not specified"}
               </p>
 
               <p>
                 <strong>Growth Stage:</strong>{" "}
-                {crop.growthStage || "Not specified"}
+                {crop.growthStage ||
+                  "Not specified"}
               </p>
 
               <p>
                 <strong>Location:</strong>{" "}
-                {crop.location || "Not specified"}
+                {crop.location ||
+                  "Not specified"}
               </p>
 
               <p>
@@ -315,14 +434,20 @@ function CropsPage() {
 
               <button
                 type="button"
-                onClick={() => handleEdit(crop)}
+                onClick={() =>
+                  handleEdit(crop)
+                }
               >
                 Edit
-              </button>{" "}
+              </button>
+
+              {" "}
 
               <button
                 type="button"
-                onClick={() => handleDelete(crop._id)}
+                onClick={() =>
+                  handleDelete(crop._id)
+                }
               >
                 Delete
               </button>
@@ -330,7 +455,9 @@ function CropsPage() {
               <br />
               <br />
 
-              <CropImageUpload cropId={crop._id} />
+              <CropImageUpload
+                cropId={crop._id}
+              />
 
               <hr />
             </div>

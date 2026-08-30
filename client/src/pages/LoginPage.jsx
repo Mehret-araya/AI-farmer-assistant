@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
 
 function LoginPage() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,6 +37,9 @@ function LoginPage() {
       localStorage.setItem("token", data.token);
 
       setMessage("Login successful!");
+
+      // Redirect to the protected dashboard
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
@@ -101,3 +107,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+

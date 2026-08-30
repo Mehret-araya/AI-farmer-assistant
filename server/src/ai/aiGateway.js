@@ -1,20 +1,26 @@
 import cropDiseaseConfig from "../config/cropDiseaseConfig.js";
 
-const normalizePrediction = (
-  prediction = {},
-  cropType
-) => {
-  const config = cropDiseaseConfig[cropType];
+// AI Gateway
+// Central entry point for all AI services.
 
-  if (!config) {
+const normalizePrediction = (prediction = {}, cropName) => {
+  const cropConfig = cropDiseaseConfig[cropName];
+
+  if (!cropConfig) {
     return {
       disease: "Uncertain",
       confidence: 0,
-      message: `Crop type "${cropType}" is not supported yet.`,
+      message: "This crop is not currently supported.",
+      recommendation:
+        "Please select a supported crop.",
     };
   }
 
-  const disease = config.diseases.includes(
+  const allowedDiseases = Object.keys(
+    cropConfig.diseases
+  );
+
+  const disease = allowedDiseases.includes(
     prediction.disease
   )
     ? prediction.disease
@@ -22,67 +28,58 @@ const normalizePrediction = (
 
   const confidence = Number(prediction.confidence);
 
+  const normalizedConfidence =
+    Number.isFinite(confidence) &&
+    confidence >= 0 &&
+    confidence <= 1
+      ? confidence
+      : 0;
+
+  const diseaseInfo =
+    cropConfig.diseases[disease] ||
+    cropConfig.diseases.Uncertain;
+
   return {
     disease,
-    confidence:
-      Number.isFinite(confidence) &&
-      confidence >= 0 &&
-      confidence <= 1
-        ? confidence
-        : 0,
+    confidence: normalizedConfidence,
+
     message:
       prediction.message ||
-      "AI disease detection is not connected yet.",
+      diseaseInfo.explanation,
+
+    recommendation:
+      prediction.recommendation ||
+      diseaseInfo.recommendation,
+
+    severity: diseaseInfo.severity,
   };
 };
 
 export const analyzeCropImage = async (
   imageUrl,
-  cropType
+  cropName
 ) => {
   if (!imageUrl) {
     throw new Error("Image URL is required");
   }
 
-  if (!cropType) {
-    throw new Error("Crop type is required");
+  if (!cropName) {
+    throw new Error("Crop name is required");
   }
 
-  const normalizedCropType =
-    cropType.toLowerCase().trim();
+  /*
+   * TEMPORARY AI PROVIDER
+   *
+   * The real computer-vision model will be connected later.
+   */
 
-  const config =
-    cropDiseaseConfig[normalizedCropType];
-
-  if (!config) {
-    return {
-      disease: "Uncertain",
-      confidence: 0,
-      message:
-        "This crop is not supported by the AI system yet.",
-    };
-  }
-
-  if (!config.aiEnabled) {
-    return {
-      disease: "Uncertain",
-      confidence: 0,
-      message:
-        `AI disease detection for ${normalizedCropType} is not available yet.`,
-    };
-  }
-
-  // Temporary AI result.
-  // The real model will be connected later.
   const prediction = {
     disease: "Uncertain",
     confidence: 0,
-    message:
-      "Tomato AI model is not connected yet.",
   };
 
   return normalizePrediction(
     prediction,
-    normalizedCropType
+    cropName
   );
 };

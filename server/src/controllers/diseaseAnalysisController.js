@@ -50,7 +50,9 @@ export const analyzeDisease = async (req, res) => {
       disease: aiResult.disease,
       confidence: aiResult.confidence,
       explanation: aiResult.message || "",
-      recommendation: "",
+      recommendation: aiResult.recommendation || "",
+
+
     });
 
     // 5. Return the result

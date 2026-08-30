@@ -1,5 +1,5 @@
 import { useAuth } from "../context/AuthContext";
-import CropImageUpload from "../components/CropImageUpload";
+import { Link } from "react-router-dom";
 
 function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -49,18 +49,34 @@ function DashboardPage() {
             </p>
 
             <p>
-              <strong>Language:</strong> {user.language}
+              <strong>Language:</strong>{" "}
+              {user.language}
             </p>
 
             <p>
-              <strong>Role:</strong> {user.role}
+              <strong>Role:</strong>{" "}
+              {user.role}
             </p>
           </div>
         </div>
 
-        {/* Image compression test */}
+        {/* Crops */}
         <div className="mt-8 rounded-lg bg-white p-6 shadow">
-          <CropImageUpload />
+          <h2 className="text-2xl font-semibold text-green-700">
+            Your Crops
+          </h2>
+
+          <p className="mt-2 text-gray-700">
+            Add and manage your crops, upload crop images,
+            and analyze them for possible diseases.
+          </p>
+
+          <Link
+            to="/crops"
+            className="mt-4 inline-block rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700"
+          >
+            Manage My Crops
+          </Link>
         </div>
 
         {/* Logout */}
