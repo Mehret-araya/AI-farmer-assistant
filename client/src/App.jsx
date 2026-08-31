@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import WeatherPage from "./pages/WeatherPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -20,6 +20,14 @@ function App() {
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route
+  path="/weather"
+  element={
+    <ProtectedRoute>
+      <WeatherPage />
+    </ProtectedRoute>
+  }
+/>
         <Route
   path="/crops"
   element={
