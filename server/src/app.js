@@ -6,6 +6,7 @@ import connectDB from "./config/database.js";
 import cropRoutes from "./routes/cropRoutes.js";
 import cropImageRoutes from "./routes/cropImageRoutes.js";
 import diseaseAnalysisRoutes from "./routes/diseaseAnalysisRoutes.js";
+import weatherRoutes from "./routes/weatherRoutes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/auth", authRoutes);
 app.use("/crops", cropRoutes);
 app.use("/crops", cropImageRoutes);
 app.use("/disease-analysis", diseaseAnalysisRoutes);
+app.use("/weather", weatherRoutes);
 // Test route
 app.get("/", (req, res) => {
   res.json({
