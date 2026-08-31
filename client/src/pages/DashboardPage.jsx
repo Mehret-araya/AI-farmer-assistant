@@ -195,6 +195,13 @@ function DashboardPage() {
             >
               Manage My Crops
             </Link>
+
+            <Link
+  to="/weather"
+  className="mt-4 ml-4 inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+>
+  Check Weather 🌦️
+</Link>
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
