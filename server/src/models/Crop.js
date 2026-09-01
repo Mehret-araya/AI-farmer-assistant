@@ -55,6 +55,19 @@ const cropSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    latitude: {
+  type: Number,
+  min: -90,
+  max: 90,
+  default: null,
+},
+
+longitude: {
+  type: Number,
+  min: -180,
+  max: 180,
+  default: null,
+},
   },
   {
     timestamps: true,

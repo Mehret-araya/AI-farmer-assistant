@@ -27,6 +27,11 @@ export const createCrop = async (req, res) => {
       growthStage: growthStage || "",
       location: location || "",
       farmSize: farmSize || 0,
+      latitude:
+  latitude !== undefined ? Number(latitude) : null,
+
+longitude:
+  longitude !== undefined ? Number(longitude) : null,
     });
 
     return res.status(201).json({
@@ -98,14 +103,16 @@ export const getCropById = async (req, res) => {
 export const updateCrop = async (req, res) => {
   try {
     const {
-      name,
-      variety,
-      plantingDate,
-      growthStage,
-      location,
-      farmSize,
-    } = req.body;
-
+  name,
+  variety,
+  plantingDate,
+  growthStage,
+  location,
+  farmSize,
+  latitude,
+  longitude,
+} = req.body;
+    
     const crop = await Crop.findOne({
       _id: req.params.id,
       userId: req.user.userId,
@@ -124,6 +131,13 @@ export const updateCrop = async (req, res) => {
     if (growthStage !== undefined) crop.growthStage = growthStage;
     if (location !== undefined) crop.location = location;
     if (farmSize !== undefined) crop.farmSize = farmSize;
+    if (latitude !== undefined) {
+  crop.latitude = Number(latitude);
+}
+
+if (longitude !== undefined) {
+  crop.longitude = Number(longitude);
+}
 
     await crop.save();
 

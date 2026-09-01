@@ -20,15 +20,17 @@ function CropsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-
   const [formData, setFormData] = useState({
-    name: "tomato",
-    variety: "",
-    plantingDate: "",
-    growthStage: "",
-    location: "",
-    farmSize: "",
-  });
+  name: "tomato",
+  variety: "",
+  plantingDate: "",
+  growthStage: "",
+  location: "",
+  farmSize: "",
+  latitude: "",
+  longitude: "",
+});
+
 
   const [editingCropId, setEditingCropId] = useState(null);
 
@@ -64,20 +66,22 @@ function CropsPage() {
       [name]: value,
     }));
   };
-
   const resetForm = () => {
-    setFormData({
-      name: "tomato",
-      variety: "",
-      plantingDate: "",
-      growthStage: "",
-      location: "",
-      farmSize: "",
-    });
+  setFormData({
+    name: "tomato",
+    variety: "",
+    plantingDate: "",
+    growthStage: "",
+    location: "",
+    farmSize: "",
+    latitude: "",
+    longitude: "",
+  });
 
-    setEditingCropId(null);
-  };
+  setEditingCropId(null);
+};
 
+   
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -91,13 +95,21 @@ function CropsPage() {
       }
 
       const cropData = {
-        name: formData.name,
-        variety: formData.variety,
-        plantingDate: formData.plantingDate,
-        growthStage: formData.growthStage,
-        location: formData.location,
-        farmSize: Number(formData.farmSize) || 0,
-      };
+  name: formData.name,
+  variety: formData.variety,
+  plantingDate: formData.plantingDate,
+  growthStage: formData.growthStage,
+  location: formData.location,
+  farmSize: Number(formData.farmSize) || 0,
+  latitude:
+    formData.latitude !== ""
+      ? Number(formData.latitude)
+      : null,
+  longitude:
+    formData.longitude !== ""
+      ? Number(formData.longitude)
+      : null,
+};
 
       if (editingCropId) {
         await updateCrop(
@@ -126,16 +138,17 @@ function CropsPage() {
     setEditingCropId(crop._id);
 
     setFormData({
-      name: crop.name || "tomato",
-      variety: crop.variety || "",
-      plantingDate: crop.plantingDate
-        ? crop.plantingDate.split("T")[0]
-        : "",
-      growthStage: crop.growthStage || "",
-      location: crop.location || "",
-      farmSize: crop.farmSize ?? "",
-    });
-
+  name: crop.name || "tomato",
+  variety: crop.variety || "",
+  plantingDate: crop.plantingDate
+    ? crop.plantingDate.split("T")[0]
+    : "",
+  growthStage: crop.growthStage || "",
+  location: crop.location || "",
+  farmSize: crop.farmSize ?? "",
+  latitude: crop.latitude ?? "",
+  longitude: crop.longitude ?? "",
+});
     setMessage("");
     setError("");
   };
@@ -323,6 +336,51 @@ function CropsPage() {
 
           <br />
 
+          {/* Latitude */}
+<div>
+  <label htmlFor="latitude">
+    Latitude
+  </label>
+
+  <br />
+
+  <input
+    id="latitude"
+    name="latitude"
+    type="number"
+    step="any"
+    min="-90"
+    max="90"
+    value={formData.latitude}
+    onChange={handleChange}
+    placeholder="e.g. 9.03"
+  />
+</div>
+
+<br />
+
+{/* Longitude */}
+<div>
+  <label htmlFor="longitude">
+    Longitude
+  </label>
+
+  <br />
+
+  <input
+    id="longitude"
+    name="longitude"
+    type="number"
+    step="any"
+    min="-180"
+    max="180"
+    value={formData.longitude}
+    onChange={handleChange}
+    placeholder="e.g. 38.74"
+  />
+</div>
+
+<br />
           <input
             id="farmSize"
             name="farmSize"
