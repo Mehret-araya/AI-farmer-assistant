@@ -7,7 +7,7 @@ import cropRoutes from "./routes/cropRoutes.js";
 import cropImageRoutes from "./routes/cropImageRoutes.js";
 import diseaseAnalysisRoutes from "./routes/diseaseAnalysisRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
-
+import assistantRoutes from "./routes/assistantRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -22,6 +22,7 @@ app.use("/crops", cropRoutes);
 app.use("/crops", cropImageRoutes);
 app.use("/disease-analysis", diseaseAnalysisRoutes);
 app.use("/weather", weatherRoutes);
+app.use("/assistant", assistantRoutes);
 // Test route
 app.get("/", (req, res) => {
   res.json({

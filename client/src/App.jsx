@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import CropsPage from "./pages/CropsPage";
 import useOfflineSync from "./hooks/useOfflineSync";
+import AssistantPage from "./pages/AssistantPage";
 
 function App() {
   useOfflineSync();
@@ -20,6 +21,7 @@ function App() {
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
         <Route
   path="/weather"
   element={
@@ -45,6 +47,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route 
+  path="/assistant" 
+  element={ 
+    <ProtectedRoute> 
+      <AssistantPage /> 
+    </ProtectedRoute> 
+  } 
+/>
       </Routes>
     </BrowserRouter>
   );
