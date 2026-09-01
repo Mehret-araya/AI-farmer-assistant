@@ -10,6 +10,8 @@ export const createCrop = async (req, res) => {
       growthStage,
       location,
       farmSize,
+      latitude,
+      longitude,
     } = req.body;
 
     if (!name || !plantingDate) {
@@ -28,10 +30,17 @@ export const createCrop = async (req, res) => {
       location: location || "",
       farmSize: farmSize || 0,
       latitude:
-  latitude !== undefined ? Number(latitude) : null,
-
-longitude:
-  longitude !== undefined ? Number(longitude) : null,
+        latitude !== undefined &&
+        latitude !== null &&
+        latitude !== ""
+          ? Number(latitude)
+          : null,
+      longitude:
+        longitude !== undefined &&
+        longitude !== null &&
+        longitude !== ""
+          ? Number(longitude)
+          : null,
     });
 
     return res.status(201).json({
@@ -103,16 +112,16 @@ export const getCropById = async (req, res) => {
 export const updateCrop = async (req, res) => {
   try {
     const {
-  name,
-  variety,
-  plantingDate,
-  growthStage,
-  location,
-  farmSize,
-  latitude,
-  longitude,
-} = req.body;
-    
+      name,
+      variety,
+      plantingDate,
+      growthStage,
+      location,
+      farmSize,
+      latitude,
+      longitude,
+    } = req.body;
+
     const crop = await Crop.findOne({
       _id: req.params.id,
       userId: req.user.userId,
@@ -125,19 +134,43 @@ export const updateCrop = async (req, res) => {
       });
     }
 
-    if (name !== undefined) crop.name = name;
-    if (variety !== undefined) crop.variety = variety;
-    if (plantingDate !== undefined) crop.plantingDate = plantingDate;
-    if (growthStage !== undefined) crop.growthStage = growthStage;
-    if (location !== undefined) crop.location = location;
-    if (farmSize !== undefined) crop.farmSize = farmSize;
-    if (latitude !== undefined) {
-  crop.latitude = Number(latitude);
-}
+    if (name !== undefined) {
+      crop.name = name;
+    }
 
-if (longitude !== undefined) {
-  crop.longitude = Number(longitude);
-}
+    if (variety !== undefined) {
+      crop.variety = variety;
+    }
+
+    if (plantingDate !== undefined) {
+      crop.plantingDate = plantingDate;
+    }
+
+    if (growthStage !== undefined) {
+      crop.growthStage = growthStage;
+    }
+
+    if (location !== undefined) {
+      crop.location = location;
+    }
+
+    if (farmSize !== undefined) {
+      crop.farmSize = farmSize;
+    }
+
+    if (latitude !== undefined) {
+      crop.latitude =
+        latitude === null || latitude === ""
+          ? null
+          : Number(latitude);
+    }
+
+    if (longitude !== undefined) {
+      crop.longitude =
+        longitude === null || longitude === ""
+          ? null
+          : Number(longitude);
+    }
 
     await crop.save();
 
@@ -186,3 +219,6 @@ export const deleteCrop = async (req, res) => {
     });
   }
 };
+
+
+

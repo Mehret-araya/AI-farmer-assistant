@@ -1,7 +1,7 @@
 import { askAssistant } from "../ai/assistantClient.js";
+import { getWeather } from "../services/weatherService.js";
 import Crop from "../models/Crop.js";
 import DiseaseAnalysis from "../models/DiseaseAnalysis.js";
-
 export const askFarmerAssistant = async (req, res) => {
   try {
     const { question } = req.body;
@@ -14,12 +14,58 @@ export const askFarmerAssistant = async (req, res) => {
     }
 
     // Get the logged-in farmer's crops
+   
     const crops = await Crop.find({
-      userId: req.user.userId,
-    }).select(
-      "name variety plantingDate growthStage location farmSize"
+  userId: req.user.userId,
+}).select(
+  "name variety plantingDate growthStage location farmSize latitude longitude"
+);
+// Get weather for the farmer's first crop with coordinates
+let weatherContext = "Weather information is not available.";
+
+const cropWithCoordinates = crops.find(
+  (crop) =>
+    crop.latitude !== null &&
+    crop.latitude !== undefined &&
+    crop.longitude !== null &&
+    crop.longitude !== undefined
+);
+
+if (cropWithCoordinates) {
+  try {
+    const weather = await getWeather(
+      cropWithCoordinates.latitude,
+      cropWithCoordinates.longitude
     );
 
+    weatherContext = `
+Current temperature: ${
+      weather.current?.temperature_2m ?? "Not available"
+    } °C
+
+Relative humidity: ${
+      weather.current?.relative_humidity_2m ?? "Not available"
+    } %
+
+Precipitation: ${
+      weather.current?.precipitation ?? "Not available"
+    } mm
+
+Wind speed: ${
+      weather.current?.wind_speed_10m ?? "Not available"
+    } km/h
+
+7-day precipitation probability:
+${
+  weather.daily?.precipitation_probability_max
+    ? weather.daily.precipitation_probability_max.join(", ")
+    : "Not available"
+} %
+`;
+  } catch (weatherError) {
+    console.error("Assistant weather error:", weatherError);
+  }
+}
     // Get the logged-in farmer's recent disease analyses
     const analyses = await DiseaseAnalysis.find({
       userId: req.user.userId,
@@ -83,13 +129,16 @@ ${cropContext}
 Recent disease analysis information:
 ${diseaseContext}
 
+Current farm weather:
+${weatherContext}
+
 Farmer's question:
 ${question.trim()}
 
 Give practical and safe agricultural advice.
 
-Use the farmer's crop information and disease-analysis
-information when relevant.
+Use the farmer's crop information, disease-analysis
+information, and weather information when relevant.
 
 Do not invent facts about the farmer's farm.
 

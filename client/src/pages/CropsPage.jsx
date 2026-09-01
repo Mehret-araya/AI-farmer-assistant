@@ -6,6 +6,7 @@ import {
   deleteCrop,
 } from "../api/crop";
 import CropImageUpload from "../components/CropImageUpload";
+import CropWeather from "../components/CropWeather";
 
 const SUPPORTED_CROPS = [
   "tomato",
@@ -328,15 +329,29 @@ function CropsPage() {
 
         <br />
 
-        {/* Farm Size */}
-        <div>
-          <label htmlFor="farmSize">
-            Farm Size
-          </label>
+{/* Farm Size */}
+<div>
+  <label htmlFor="farmSize">
+    Farm Size (hectares)
+  </label>
 
-          <br />
+  <br />
 
-          {/* Latitude */}
+  <input
+    id="farmSize"
+    name="farmSize"
+    type="number"
+    min="0"
+    step="0.01"
+    value={formData.farmSize}
+    onChange={handleChange}
+    placeholder="e.g. 2"
+  />
+</div>
+
+<br />
+
+{/* Latitude */}
 <div>
   <label htmlFor="latitude">
     Latitude
@@ -353,7 +368,7 @@ function CropsPage() {
     max="90"
     value={formData.latitude}
     onChange={handleChange}
-    placeholder="e.g. 9.03"
+    placeholder="e.g. 13.4967"
   />
 </div>
 
@@ -376,24 +391,16 @@ function CropsPage() {
     max="180"
     value={formData.longitude}
     onChange={handleChange}
-    placeholder="e.g. 38.74"
+    placeholder="e.g. 39.4753"
   />
 </div>
 
 <br />
-          <input
-            id="farmSize"
-            name="farmSize"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formData.farmSize}
-            onChange={handleChange}
-            placeholder="e.g. 2"
-          />
-        </div>
 
-        <br />
+
+
+  
+
 
         <button
           type="submit"
@@ -516,6 +523,10 @@ function CropsPage() {
               <CropImageUpload
                 cropId={crop._id}
               />
+              <CropWeather
+  latitude={crop.latitude}
+  longitude={crop.longitude}
+/>
 
               <hr />
             </div>

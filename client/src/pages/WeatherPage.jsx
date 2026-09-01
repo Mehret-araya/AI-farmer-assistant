@@ -209,6 +209,11 @@ function WeatherPage() {
                       {weather.daily.precipitation_sum?.[index]}
                       mm
                     </p>
+                    <p>
+                      Rain Probability:{" "}
+                      {weather.daily.precipitation_probability_max?.[index] ?? 0}%
+                    </p>
+                    
                   </div>
                 )
               )}
