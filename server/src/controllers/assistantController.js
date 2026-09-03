@@ -2,9 +2,17 @@ import { askAssistant } from "../ai/assistantClient.js";
 import { getWeather } from "../services/weatherService.js";
 import Crop from "../models/Crop.js";
 import DiseaseAnalysis from "../models/DiseaseAnalysis.js";
+import AgriculturalKnowledge from "../models/AgriculturalKnowledge.js";
+import User from "../models/User.js";
 export const askFarmerAssistant = async (req, res) => {
   try {
     const { question } = req.body;
+
+const user = await User.findById(req.user.userId).select("language");
+
+const language = user?.language || "en";
+console.log("Assistant language:", language);
+
 
     if (!question || !question.trim()) {
       return res.status(400).json({
@@ -12,6 +20,72 @@ export const askFarmerAssistant = async (req, res) => {
         message: "Question is required",
       });
     }
+
+        // Retrieve relevant agricultural knowledge
+    
+
+          // Retrieve relevant agricultural knowledge
+const searchTerms = question
+  .trim()
+  .toLowerCase()
+  .split(/\s+/)
+  .filter(
+    (word) =>
+      word.length > 2 &&
+      ![
+        "what",
+        "are",
+        "the",
+        "how",
+        "can",
+        "does",
+        "about",
+        "for",
+        "tomato",
+        "please",
+        "tell",
+        "me",
+      ].includes(word)
+  );
+
+const knowledgeResults = await AgriculturalKnowledge.find({
+  crop: "Tomato",
+  language,
+  $or: [
+    ...searchTerms.map((term) => ({
+      title: { $regex: term, $options: "i" },
+    })),
+    ...searchTerms.map((term) => ({
+      content: { $regex: term, $options: "i" },
+    })),
+    ...searchTerms.map((term) => ({
+      topic: { $regex: term, $options: "i" },
+    })),
+    ...searchTerms.map((term) => ({
+      tags: { $regex: term, $options: "i" },
+    })),
+  ],
+})
+  .limit(5)
+  .sort({ createdAt: -1 });
+
+console.log("Search terms:", searchTerms);
+console.log("Knowledge results:", knowledgeResults.length);
+
+// Build knowledge context
+const knowledgeContext =
+  knowledgeResults.length > 0
+    ? knowledgeResults
+        .map(
+          (knowledge) =>
+            `Title: ${knowledge.title}
+Topic: ${knowledge.topic}
+Disease: ${knowledge.disease || "General"}
+Content: ${knowledge.content}
+Source: ${knowledge.source || "Not specified"}`
+        )
+        .join("\n\n")
+    : "No relevant agricultural knowledge was found.";
 
     // Get the logged-in farmer's crops
    
@@ -123,6 +197,9 @@ ${
     const contextualQuestion = `
 You are an agricultural assistant helping a farmer.
 
+Relevant agricultural knowledge:
+${knowledgeContext}
+
 Farmer's crop information:
 ${cropContext}
 
@@ -151,10 +228,17 @@ do not present it as a confirmed diagnosis.
 
     const answer = await askAssistant(contextualQuestion);
 
-    return res.status(200).json({
-      success: true,
-      answer,
-    });
+const sources = knowledgeResults.map((knowledge) => ({
+  title: knowledge.title,
+  source: knowledge.source,
+  sourceUrl: knowledge.sourceUrl,
+}));
+
+return res.status(200).json({
+  success: true,
+  answer,
+  sources,
+});
   } catch (error) {
     console.error("Assistant error:", error);
 
