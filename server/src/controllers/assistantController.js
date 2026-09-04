@@ -2,7 +2,6 @@ import { askAssistant } from "../ai/assistantClient.js";
 import { getWeather } from "../services/weatherService.js";
 import Crop from "../models/Crop.js";
 import DiseaseAnalysis from "../models/DiseaseAnalysis.js";
-import AgriculturalKnowledge from "../models/AgriculturalKnowledge.js";
 import User from "../models/User.js";
 import { searchKnowledgeSemantically } from "../services/knowledgeRetrievalService.js";
 
@@ -24,113 +23,41 @@ export const askFarmerAssistant = async (req, res) => {
       });
     }
 
-   // Retrieve relevant agricultural knowledge
+    // Retrieve relevant agricultural knowledge using semantic search
 
-const normalizedQuestion = question.trim().toLowerCase();
+    const normalizedQuestion = question.trim().toLowerCase();
 
-// Detect specific disease/topic mentioned in the question
-let diseaseFilter = null;
+    // Detect specific disease mentioned in the question
+    let diseaseFilter = null;
 
-if (normalizedQuestion.includes("early blight")) {
-  diseaseFilter = "Early Blight";
-} else if (normalizedQuestion.includes("late blight")) {
-  diseaseFilter = "Late Blight";
-} else if (normalizedQuestion.includes("uncertain")) {
-  diseaseFilter = "Uncertain";
-} else if (normalizedQuestion.includes("healthy")) {
-  diseaseFilter = "Healthy";
-}
+    if (normalizedQuestion.includes("early blight")) {
+      diseaseFilter = "Early Blight";
+    } else if (normalizedQuestion.includes("late blight")) {
+      diseaseFilter = "Late Blight";
+    } else if (normalizedQuestion.includes("uncertain")) {
+      diseaseFilter = "Uncertain";
+    } else if (normalizedQuestion.includes("healthy")) {
+      diseaseFilter = "Healthy";
+    }
 
-const searchTerms = normalizedQuestion
-  .split(/\s+/)
-  .filter(
-    (word) =>
-      word.length > 2 &&
-      ![
-        "what",
-        "are",
-        "the",
-        "how",
-        "can",
-        "does",
-        "about",
-        "for",
-        "tomato",
-        "please",
-        "tell",
-        "me",
-        "should",
-        "my",
-        "have",
-        "has",
-        "with",
-        "this",
-        "that",
-      ].includes(word)
-  );
+    const knowledgeResults = await searchKnowledgeSemantically({
+      question: question.trim(),
+      language,
+      disease: diseaseFilter,
+      limit: 5,
+    });
 
-let knowledgeResults = [];
+    console.log("Assistant language:", language);
+    console.log("Detected disease:", diseaseFilter);
+    console.log(
+      "Semantic knowledge results:",
+      knowledgeResults.length
+    );
+    console.log(
+      "Knowledge titles:",
+      knowledgeResults.map((knowledge) => knowledge.title)
+    );
 
-if (diseaseFilter) {
-  // When a specific disease is mentioned,
-  // prioritize the exact disease document.
-  knowledgeResults = await AgriculturalKnowledge.find({
-    crop: "Tomato",
-    language,
-    disease: diseaseFilter,
-  })
-    .limit(3)
-    .sort({ createdAt: -1 });
-} else if (searchTerms.length > 0) {
-  // For general questions, use keyword-based retrieval.
-  knowledgeResults = await AgriculturalKnowledge.find({
-    crop: "Tomato",
-    language,
-    $or: searchTerms.flatMap((term) => [
-      { title: { $regex: term, $options: "i" } },
-      { content: { $regex: term, $options: "i" } },
-      { topic: { $regex: term, $options: "i" } },
-      { tags: { $regex: term, $options: "i" } },
-    ]),
-  })
-    .limit(5)
-    .sort({ createdAt: -1 });
-}
-
-console.log("Assistant language:", language);
-console.log("Detected disease:", diseaseFilter);
-console.log("Knowledge results:", knowledgeResults.length);
-
-// Retrieve relevant agricultural knowledge using semantic search
-
-const normalizedQuestion = question.trim().toLowerCase();
-
-let diseaseFilter = null;
-
-if (normalizedQuestion.includes("early blight")) {
-  diseaseFilter = "Early Blight";
-} else if (normalizedQuestion.includes("late blight")) {
-  diseaseFilter = "Late Blight";
-} else if (normalizedQuestion.includes("uncertain")) {
-  diseaseFilter = "Uncertain";
-} else if (normalizedQuestion.includes("healthy")) {
-  diseaseFilter = "Healthy";
-}
-
-const knowledgeResults = await searchKnowledgeSemantically({
-  question: question.trim(),
-  language,
-  disease: diseaseFilter,
-  limit: 5,
-});
-
-console.log("Assistant language:", language);
-console.log("Detected disease:", diseaseFilter);
-console.log("Semantic knowledge results:", knowledgeResults.length);
-console.log(
-  "Knowledge titles:",
-  knowledgeResults.map((knowledge) => knowledge.title)
-);
     // Build knowledge context
     const knowledgeContext =
       knowledgeResults.length > 0
@@ -294,6 +221,7 @@ Use the farmer's crop information, disease-analysis information,
 and weather information only when relevant to the farmer's question.
 
 Do not invent facts about the farmer's farm.
+
 Use only the retrieved agricultural knowledge for disease symptoms,
 prevention, and treatment advice.
 
