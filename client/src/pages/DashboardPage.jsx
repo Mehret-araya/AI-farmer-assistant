@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getCrops } from "../api/crop";
 import { getCropAnalyses } from "../api/diseaseAnalysis";
-
+import VoiceAssistant from "../components/VoiceAssistant";
 function DashboardPage() {
   const { user, loading, logout } = useAuth();
 
@@ -223,6 +223,21 @@ function DashboardPage() {
           </div>
 
         </div>
+
+        {/* Voice Assistant */}
+<div className="mt-8 rounded-lg bg-white p-6 shadow">
+  <h2 className="text-2xl font-semibold text-green-700">
+    🎙️ Voice Assistant
+  </h2>
+
+  <p className="mt-2 text-gray-600">
+    Ask the AI Farmer Assistant a question using your voice.
+  </p>
+
+  <div className="mt-5">
+    <VoiceAssistant language={user.language} />
+  </div>
+</div>
 
         {/* Coming soon */}
         <div className="mt-8 rounded-lg bg-white p-6 shadow">
