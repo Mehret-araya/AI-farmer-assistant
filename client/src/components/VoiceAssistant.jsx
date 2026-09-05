@@ -1,5 +1,4 @@
-import { useRef, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 const API_URL = "http://localhost:5000";
 
 const getSpeechRecognition = () => {
@@ -27,6 +26,17 @@ const VoiceAssistant = ({ language = "en" }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const recognitionRef = useRef(null);
+  useEffect(() => {
+  return () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+}, []);
 
   const speakAnswer = (text) => {
     if (!text || !("speechSynthesis" in window)) {
@@ -108,8 +118,17 @@ const VoiceAssistant = ({ language = "en" }) => {
   };
 
   const startListening = () => {
-    setError("");
+  setError("");
 
+  if (isSpeaking) {
+    setError("Please stop the assistant's voice before speaking again.");
+    return;
+  }
+
+  if (isLoading) {
+    setError("Please wait while the assistant is thinking.");
+    return;
+  }
     const SpeechRecognition = getSpeechRecognition();
 
     if (!SpeechRecognition) {
@@ -142,17 +161,28 @@ const VoiceAssistant = ({ language = "en" }) => {
 
       await askAssistant(text);
     };
-
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+  console.error("Speech recognition error:", event.error);
 
-      setError(
-        "Unable to recognize speech. Please try again."
-      );
+  let message = "Unable to recognize speech. Please try again.";
 
-      setIsListening(false);
-    };
+  if (event.error === "not-allowed") {
+    message =
+      "Microphone permission was denied. Please allow microphone access and try again.";
+  } else if (event.error === "no-speech") {
+    message =
+      "No speech was detected. Please speak clearly and try again.";
+  } else if (event.error === "audio-capture") {
+    message =
+      "No microphone was found. Please check your microphone and try again.";
+  } else if (event.error === "network") {
+    message =
+      "A network error occurred during speech recognition. Please try again.";
+  }
 
+  setError(message);
+  setIsListening(false);
+};
     recognition.onend = () => {
       setIsListening(false);
     };
@@ -181,15 +211,23 @@ const VoiceAssistant = ({ language = "en" }) => {
   return (
     <div>
       <button
-        type="button"
-        onClick={isListening ? stopListening : startListening}
-        disabled={isLoading}
-        className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isListening
-          ? "Stop Listening"
-          : "🎤 Start Speaking"}
-      </button>
+  type="button"
+  onClick={
+    isListening
+      ? stopListening
+      : isSpeaking
+      ? stopSpeaking
+      : startListening
+  }
+  disabled={isLoading}
+  className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {isListening
+    ? "Stop Listening"
+    : isSpeaking
+    ? "🔊 Stop Speaking"
+    : "🎤 Start Speaking"}
+</button>
 
       {isListening && (
         <p className="mt-3 text-gray-600">
