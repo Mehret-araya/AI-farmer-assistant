@@ -24,14 +24,48 @@ const VoiceAssistant = ({ language = "en" }) => {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const recognitionRef = useRef(null);
+
+  const speakAnswer = (text) => {
+    if (!text || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.lang = languageMap[language] || "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   const askAssistant = async (question) => {
     try {
       setIsLoading(true);
       setError("");
       setAnswer("");
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
 
       const token = localStorage.getItem("token");
 
@@ -58,7 +92,13 @@ const VoiceAssistant = ({ language = "en" }) => {
         );
       }
 
-      setAnswer(data.answer || "");
+      const assistantAnswer = data.answer || "";
+
+      setAnswer(assistantAnswer);
+
+      if (assistantAnswer) {
+        speakAnswer(assistantAnswer);
+      }
     } catch (error) {
       console.error("Voice assistant error:", error);
       setError(error.message);
@@ -89,6 +129,10 @@ const VoiceAssistant = ({ language = "en" }) => {
       setIsListening(true);
       setTranscript("");
       setAnswer("");
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     };
 
     recognition.onresult = async (event) => {
@@ -101,7 +145,11 @@ const VoiceAssistant = ({ language = "en" }) => {
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
-      setError("Unable to recognize speech. Please try again.");
+
+      setError(
+        "Unable to recognize speech. Please try again."
+      );
+
       setIsListening(false);
     };
 
@@ -122,34 +170,81 @@ const VoiceAssistant = ({ language = "en" }) => {
     setIsListening(false);
   };
 
+  const stopSpeaking = () => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    setIsSpeaking(false);
+  };
+
   return (
     <div>
       <button
         type="button"
         onClick={isListening ? stopListening : startListening}
         disabled={isLoading}
+        className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isListening ? "Stop Listening" : "🎤 Start Speaking"}
+        {isListening
+          ? "Stop Listening"
+          : "🎤 Start Speaking"}
       </button>
 
-      {isListening && <p>Listening...</p>}
-
-      {transcript && (
-        <p>
-          <strong>You said:</strong> {transcript}
+      {isListening && (
+        <p className="mt-3 text-gray-600">
+          Listening...
         </p>
       )}
 
-      {isLoading && <p>Thinking...</p>}
-
-      {answer && (
-        <div>
-          <strong>Assistant:</strong>
-          <p>{answer}</p>
+      {transcript && (
+        <div className="mt-4 rounded-lg bg-gray-50 p-4">
+          <strong>You said:</strong>
+          <p className="mt-1 text-gray-700">
+            {transcript}
+          </p>
         </div>
       )}
 
-      {error && <p>{error}</p>}
+      {isLoading && (
+        <p className="mt-4 text-gray-600">
+          Thinking...
+        </p>
+      )}
+
+      {answer && (
+        <div className="mt-4 rounded-lg bg-green-50 p-4">
+          <strong className="text-green-700">
+            Assistant:
+          </strong>
+
+          <p className="mt-2 text-gray-700">
+            {answer}
+          </p>
+
+          {isSpeaking && (
+            <p className="mt-3 text-gray-600">
+              🔊 Speaking...
+            </p>
+          )}
+
+          {isSpeaking && (
+            <button
+              type="button"
+              onClick={stopSpeaking}
+              className="mt-3 rounded-lg bg-gray-600 px-4 py-2 font-semibold text-white hover:bg-gray-700"
+            >
+              Stop Speaking
+            </button>
+          )}
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-4 rounded-lg bg-red-100 p-3 text-red-700">
+          {error}
+        </p>
+      )}
     </div>
   );
 };
