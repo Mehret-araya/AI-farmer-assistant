@@ -271,9 +271,19 @@ const keywords = {
   // --------------------------------------------------
   // RESPONSE TYPE
   // --------------------------------------------------
-  let responseType = "general";
+  
+let responseType = "general";
 
-if (needsWeather) {
+const toolCount = [
+  needsWeather,
+  needsDiseaseAnalyses,
+  needsKnowledge,
+  needsCrops,
+].filter(Boolean).length;
+
+if (toolCount > 1) {
+  responseType = "multi_tool";
+} else if (needsWeather) {
   responseType = "weather";
 } else if (needsDiseaseAnalyses) {
   responseType = "disease_history";
@@ -282,7 +292,6 @@ if (needsWeather) {
 } else if (needsCrops) {
   responseType = "crop_information";
 }
-
   return {
     needsKnowledge,
     needsCrops,
