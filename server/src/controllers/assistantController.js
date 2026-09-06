@@ -33,14 +33,16 @@ export const askFarmerAssistant = async (req, res) => {
     console.log("Agent decision:", agentResult.decision);
 
     // Build the response context selected by the agent.
-    const {
-      responseType,
-      responseInstruction,
-      knowledgeContext,
-      cropContext,
-      diseaseContext,
-      weatherContext,
-    } = buildFarmerAgentContext(agentResult);
+   const {
+  responseType,
+  responseInstruction,
+  knowledgeContext,
+  cropContext,
+  diseaseContext,
+  weatherContext,
+  toolErrorContext,
+  executionStatus,
+} = buildFarmerAgentContext(agentResult);
 
     console.log("Agent response type:", responseType);
 
@@ -73,6 +75,14 @@ ${diseaseContext}
 Current farm weather:
 
 ${weatherContext}
+
+Agent execution status:
+
+${executionStatus}
+
+Agent tool status:
+
+${toolErrorContext}
 
 Answer the farmer in their preferred language.
 
@@ -137,6 +147,11 @@ If a disease analysis has low confidence or is "Uncertain",
 do not present it as a confirmed diagnosis.
 
 Only use disease information that is relevant to the farmer's question.
+
+If the agent execution status is "partial_success", do not
+pretend that unavailable information was retrieved. Clearly state
+that the relevant information is currently unavailable when it
+matters to the farmer's question.
 
 Do not allow the response type to override the safety rules above.
 `;

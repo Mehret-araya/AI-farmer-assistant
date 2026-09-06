@@ -4,11 +4,17 @@ export const buildFarmerAgentContext = (agentResult) => {
     crops = [],
     diseaseAnalyses = [],
     weather = null,
+    toolErrors = [],
   } = agentResult;
 
   // The response type is part of the agent decision.
   const responseType =
     agentResult.decision?.responseType || "general";
+
+  // Agent execution status shows whether all selected tools
+  // completed successfully or whether some tools failed.
+  const executionStatus =
+    agentResult.executionStatus || "success";
 
   // --------------------------------------------------
   // AGRICULTURAL KNOWLEDGE CONTEXT
@@ -117,10 +123,11 @@ ${
       responseInstruction =
         "Focus primarily on the farmer's farm weather information. Explain the available weather information only when relevant to the farmer's question.";
       break;
-      case "multi_tool":
-  responseInstruction =
-    "Use all relevant information retrieved by the farmer agent. Combine crop, disease, weather, and agricultural knowledge information when relevant to the farmer's question. Do not ignore a selected tool's information when it is relevant.";
-  break;
+
+    case "multi_tool":
+      responseInstruction =
+        "Use all relevant information retrieved by the farmer agent. Combine crop, disease, weather, and agricultural knowledge information when relevant to the farmer's question. Do not ignore a selected tool's information when it is relevant.";
+      break;
 
     case "agricultural_knowledge":
       responseInstruction =
@@ -139,6 +146,23 @@ ${
       break;
   }
 
+  // --------------------------------------------------
+  // TOOL ERROR CONTEXT
+  // --------------------------------------------------
+  const toolErrorContext =
+    toolErrors.length > 0
+      ? toolErrors
+          .map(
+            (error) =>
+              `Tool: ${error.tool}
+Status: ${error.message}`
+          )
+          .join("\n\n")
+      : "All selected agent tools completed successfully.";
+
+  // --------------------------------------------------
+  // RETURN AGENT CONTEXT
+  // --------------------------------------------------
   return {
     responseType,
     responseInstruction,
@@ -146,5 +170,7 @@ ${
     cropContext,
     diseaseContext,
     weatherContext,
+    toolErrorContext,
+    executionStatus,
   };
 };
