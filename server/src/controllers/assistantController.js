@@ -42,6 +42,8 @@ export const askFarmerAssistant = async (req, res) => {
   weatherContext,
   toolErrorContext,
   executionStatus,
+  toolsUsedContext,
+  reasoningContext,
 } = buildFarmerAgentContext(agentResult);
 
     console.log("Agent response type:", responseType);
@@ -76,14 +78,22 @@ Current farm weather:
 
 ${weatherContext}
 
+
 Agent execution status:
 
 ${executionStatus}
 
+Agent tools used:
+
+${toolsUsedContext}
+
+Agent decision reasoning:
+
+${reasoningContext}
+
 Agent tool status:
 
 ${toolErrorContext}
-
 Answer the farmer in their preferred language.
 
 The farmer's preferred language code is:

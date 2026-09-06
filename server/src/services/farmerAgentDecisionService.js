@@ -262,34 +262,79 @@ export const decideAgentNeeds = (question, language = "en") => {
   };
 
   // --------------------------------------------------
-  // WEATHER
+  // INITIAL INTENT DETECTION
   // --------------------------------------------------
 
-  const needsWeather = containsAny(text, keywords.weather);
-
-  // --------------------------------------------------
-  // DISEASE ANALYSES
-  // --------------------------------------------------
+  let needsWeather = containsAny(text, keywords.weather);
 
   const needsDiseaseAnalyses = containsAny(
     text,
     keywords.diseaseHistory
   );
 
-  // --------------------------------------------------
-  // FARMER CROPS
-  // --------------------------------------------------
-
   const needsCrops = containsAny(text, keywords.crops);
 
-  // --------------------------------------------------
-  // AGRICULTURAL KNOWLEDGE
-  // --------------------------------------------------
-
-  const needsKnowledge = containsAny(
+  let needsKnowledge = containsAny(
     text,
     keywords.knowledge
   );
+
+  // --------------------------------------------------
+  // KNOWLEDGE INTENT REFINEMENT
+  // --------------------------------------------------
+  //
+  // Crop-specific questions such as:
+  // "What crops do I have?"
+  // should not automatically trigger agricultural
+  // knowledge merely because a crop name appears.
+  //
+  // Strong knowledge terms such as symptoms,
+  // treatment, prevention, irrigation, etc.
+  // keep knowledge intent enabled.
+
+  const strongKnowledgeKeywords = [
+    ...selectedLanguageKeywords.knowledge.filter(
+      (keyword) =>
+        ![
+          "tomato",
+          "ቲማቲም",
+          "nyanya",
+          "टमाटर",
+          "tomate",
+        ].includes(keyword)
+    ),
+    ...languageKeywords.en.knowledge.filter(
+      (keyword) =>
+        ![
+          "tomato",
+          "tomatoes",
+        ].includes(keyword)
+    ),
+  ];
+
+  const strongKnowledgePhrases = [
+  "what should i do",
+  "what do i do",
+  "how should i",
+  "how do i",
+  "what can i do",
+  "what is the best way",
+  "how can i",
+  "what should we do",
+];
+
+  const hasStrongKnowledgeIntent =
+  containsAny(text, strongKnowledgeKeywords) ||
+  strongKnowledgePhrases.some((phrase) =>
+    text.includes(phrase)
+  );
+
+  // If the question is only about the farmer's own
+  // crops and does not contain a strong agricultural
+  // knowledge request, do not retrieve RAG knowledge.
+  if (needsCrops && !hasStrongKnowledgeIntent) {
+    needsKnowledge = false;
+  }
 
   // --------------------------------------------------
   // RESPONSE TYPE
@@ -335,14 +380,26 @@ export const decideAgentNeeds = (question, language = "en") => {
   }
 
   if (needsKnowledge) {
-    reasoning.push(
-      "Agricultural knowledge was detected as relevant to the farmer's question."
-    );
+    if (hasStrongKnowledgeIntent) {
+      reasoning.push(
+        "A strong agricultural knowledge request was detected."
+      );
+    } else {
+      reasoning.push(
+        "Agricultural knowledge was detected as relevant to the farmer's question."
+      );
+    }
   }
 
   if (needsCrops) {
     reasoning.push(
       "The farmer's registered crop or farm information was detected as relevant."
+    );
+  }
+
+  if (needsCrops && !needsKnowledge) {
+    reasoning.push(
+      "Knowledge retrieval was not selected because the question appears to focus on the farmer's own crop information."
     );
   }
 
@@ -361,3 +418,4 @@ export const decideAgentNeeds = (question, language = "en") => {
     reasoning,
   };
 };
+

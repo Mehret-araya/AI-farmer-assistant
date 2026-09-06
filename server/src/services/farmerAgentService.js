@@ -6,6 +6,7 @@ import {
 } from "./farmerAgentTools.js";
 
 import { decideAgentNeeds } from "./farmerAgentDecisionService.js";
+import { validateAgentDecision } from "./farmerAgentSafetyService.js";
 
 export const runFarmerAgent = async ({
   userId,
@@ -24,6 +25,7 @@ export const runFarmerAgent = async ({
 
   // Decide which information the agent needs.
   const decision = decideAgentNeeds(cleanQuestion, language);
+  const safetyCheck = validateAgentDecision(decision);
 
   let crops = [];
   let diseaseAnalyses = [];
@@ -31,16 +33,26 @@ export const runFarmerAgent = async ({
   let knowledge = [];
 
   const toolErrors = [];
-  const toolsUsed = [];
 
+const toolsUsed = [];
+
+const toolResults = {
+  crops: "not_selected",
+  diseaseAnalyses: "not_selected",
+  weather: "not_selected",
+  knowledge: "not_selected",
+};
   // Call only the tools required by the decision.
   if (decision.needsCrops) {
   toolsUsed.push("crops");
+  toolResults.crops = "running";
 
   try {
     crops = await getFarmerCrops(userId);
+    toolResults.crops = "success";
     } catch (error) {
       console.error("Farmer crops tool error:", error.message);
+      toolResults.crops = "failed";
 
       toolErrors.push({
         tool: "crops",
@@ -50,67 +62,79 @@ export const runFarmerAgent = async ({
   }
   if (decision.needsDiseaseAnalyses) {
   toolsUsed.push("diseaseAnalyses");
+  toolResults.diseaseAnalyses = "running";
 
   try {
     diseaseAnalyses = await getFarmerDiseaseAnalyses(userId);
+    toolResults.diseaseAnalyses = "success";
+  } catch (error) {
+    console.error(
+      "Farmer disease analysis tool error:",
+      error.message
+    );
+
+    toolResults.diseaseAnalyses = "failed";
+
+    toolErrors.push({
+      tool: "diseaseAnalyses",
+      message:
+        "Disease analysis information is temporarily unavailable.",
+    });
+  }
+}
 
   
-    } catch (error) {
-      console.error(
-        "Farmer disease analysis tool error:",
-        error.message
-      );
-
-      toolErrors.push({
-        tool: "diseaseAnalyses",
-        message:
-          "Disease analysis information is temporarily unavailable.",
-      });
-    }
-  }
-
-  if (decision.needsWeather) {
+if (decision.needsWeather) {
   toolsUsed.push("weather");
+  toolResults.weather = "running";
 
   try {
     weather = await getFarmerWeather(userId);
-    } catch (error) {
-      console.error("Farmer weather tool error:", error.message);
+    toolResults.weather = "success";
+  } catch (error) {
+    console.error("Farmer weather tool error:", error.message);
 
-      toolErrors.push({
-        tool: "weather",
-        message: "Weather information is temporarily unavailable.",
-      });
-    }
+    toolResults.weather = "failed";
+
+    toolErrors.push({
+      tool: "weather",
+      message: "Weather information is temporarily unavailable.",
+    });
   }
-
+}
   if (decision.needsKnowledge) {
   toolsUsed.push("knowledge");
+  toolResults.knowledge = "running";
 
   try {
     knowledge = await getAgriculturalKnowledge({
-        question: cleanQuestion,
-        language,
-      });
-    } catch (error) {
-      console.error(
-        "Agricultural knowledge tool error:",
-        error.message
-      );
+      question: cleanQuestion,
+      language,
+    });
 
-      toolErrors.push({
-        tool: "knowledge",
-        message:
-          "Agricultural knowledge information is temporarily unavailable.",
-      });
-    }
+    toolResults.knowledge = "success";
+  } catch (error) {
+    console.error(
+      "Agricultural knowledge tool error:",
+      error.message
+    );
+
+    toolResults.knowledge = "failed";
+
+    toolErrors.push({
+      tool: "knowledge",
+      message:
+        "Agricultural knowledge information is temporarily unavailable.",
+    });
   }
-
- return {
+}
+return {
   question: cleanQuestion,
   language,
   decision,
   toolsUsed,
+  toolResults,
+  safetyCheck,
   crops,
   diseaseAnalyses,
   weather,
@@ -121,4 +145,5 @@ export const runFarmerAgent = async ({
       ? "partial_success"
       : "success",
 };
+
 };
