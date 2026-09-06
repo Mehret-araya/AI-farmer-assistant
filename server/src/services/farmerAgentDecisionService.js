@@ -8,6 +8,7 @@ const languageKeywords = {
       "humidity",
       "wind",
     ],
+
     diseaseHistory: [
       "recent disease",
       "recent diseases",
@@ -25,6 +26,7 @@ const languageKeywords = {
       "diseases were recently detected",
       "recently detected diseases",
     ],
+
     crops: [
       "my crop",
       "my crops",
@@ -37,6 +39,7 @@ const languageKeywords = {
       "what crop do i have",
       "which crop do i have",
     ],
+
     knowledge: [
       "symptom",
       "symptoms",
@@ -62,6 +65,7 @@ const languageKeywords = {
       "እርጥበት",
       "ንፋስ",
     ],
+
     diseaseHistory: [
       "የቅርብ ጊዜ በሽታ",
       "በሽታ ተገኝቷል",
@@ -69,6 +73,7 @@ const languageKeywords = {
       "የበሽታ ትንተና",
       "በሽታዬ",
     ],
+
     crops: [
       "ሰብሎቼ",
       "ሰብል",
@@ -77,6 +82,7 @@ const languageKeywords = {
       "እርሻዬ",
       "መስኬ",
     ],
+
     knowledge: [
       "ምልክት",
       "ምልክቶች",
@@ -101,6 +107,7 @@ const languageKeywords = {
       "unyevu",
       "upepo",
     ],
+
     diseaseHistory: [
       "ugonjwa wa hivi karibuni",
       "magonjwa ya hivi karibuni",
@@ -108,6 +115,7 @@ const languageKeywords = {
       "ugonjwa uliogunduliwa",
       "uchambuzi wa ugonjwa",
     ],
+
     crops: [
       "mazao yangu",
       "zao langu",
@@ -116,6 +124,7 @@ const languageKeywords = {
       "shamba langu",
       "mashamba yangu",
     ],
+
     knowledge: [
       "dalili",
       "utunzaji",
@@ -140,6 +149,7 @@ const languageKeywords = {
       "नमी",
       "हवा",
     ],
+
     diseaseHistory: [
       "हाल की बीमारी",
       "हाल की बीमारियाँ",
@@ -147,6 +157,7 @@ const languageKeywords = {
       "पता चली बीमारी",
       "बीमारी का विश्लेषण",
     ],
+
     crops: [
       "मेरी फसल",
       "मेरी फसलें",
@@ -155,6 +166,7 @@ const languageKeywords = {
       "मेरा खेत",
       "मेरे खेत",
     ],
+
     knowledge: [
       "लक्षण",
       "देखभाल",
@@ -178,6 +190,7 @@ const languageKeywords = {
       "humedad",
       "viento",
     ],
+
     diseaseHistory: [
       "enfermedad reciente",
       "enfermedades recientes",
@@ -185,6 +198,7 @@ const languageKeywords = {
       "enfermedad detectada",
       "análisis de enfermedad",
     ],
+
     crops: [
       "mi cultivo",
       "mis cultivos",
@@ -193,6 +207,7 @@ const languageKeywords = {
       "mi granja",
       "mi campo",
     ],
+
     knowledge: [
       "síntoma",
       "síntomas",
@@ -222,34 +237,40 @@ export const decideAgentNeeds = (question, language = "en") => {
   const text = question.toLowerCase().trim();
 
   const selectedLanguageKeywords =
-  languageKeywords[language] || languageKeywords.en;
+    languageKeywords[language] || languageKeywords.en;
 
-const keywords = {
-  weather: [
-    ...selectedLanguageKeywords.weather,
-    ...languageKeywords.en.weather,
-  ],
-  diseaseHistory: [
-    ...selectedLanguageKeywords.diseaseHistory,
-    ...languageKeywords.en.diseaseHistory,
-  ],
-  crops: [
-    ...selectedLanguageKeywords.crops,
-    ...languageKeywords.en.crops,
-  ],
-  knowledge: [
-    ...selectedLanguageKeywords.knowledge,
-    ...languageKeywords.en.knowledge,
-  ],
-};
+  const keywords = {
+    weather: [
+      ...selectedLanguageKeywords.weather,
+      ...languageKeywords.en.weather,
+    ],
+
+    diseaseHistory: [
+      ...selectedLanguageKeywords.diseaseHistory,
+      ...languageKeywords.en.diseaseHistory,
+    ],
+
+    crops: [
+      ...selectedLanguageKeywords.crops,
+      ...languageKeywords.en.crops,
+    ],
+
+    knowledge: [
+      ...selectedLanguageKeywords.knowledge,
+      ...languageKeywords.en.knowledge,
+    ],
+  };
+
   // --------------------------------------------------
   // WEATHER
   // --------------------------------------------------
+
   const needsWeather = containsAny(text, keywords.weather);
 
   // --------------------------------------------------
   // DISEASE ANALYSES
   // --------------------------------------------------
+
   const needsDiseaseAnalyses = containsAny(
     text,
     keywords.diseaseHistory
@@ -258,11 +279,13 @@ const keywords = {
   // --------------------------------------------------
   // FARMER CROPS
   // --------------------------------------------------
+
   const needsCrops = containsAny(text, keywords.crops);
 
   // --------------------------------------------------
   // AGRICULTURAL KNOWLEDGE
   // --------------------------------------------------
+
   const needsKnowledge = containsAny(
     text,
     keywords.knowledge
@@ -271,32 +294,70 @@ const keywords = {
   // --------------------------------------------------
   // RESPONSE TYPE
   // --------------------------------------------------
-  
-let responseType = "general";
 
-const toolCount = [
-  needsWeather,
-  needsDiseaseAnalyses,
-  needsKnowledge,
-  needsCrops,
-].filter(Boolean).length;
+  let responseType = "general";
 
-if (toolCount > 1) {
-  responseType = "multi_tool";
-} else if (needsWeather) {
-  responseType = "weather";
-} else if (needsDiseaseAnalyses) {
-  responseType = "disease_history";
-} else if (needsKnowledge) {
-  responseType = "agricultural_knowledge";
-} else if (needsCrops) {
-  responseType = "crop_information";
-}
+  const toolCount = [
+    needsWeather,
+    needsDiseaseAnalyses,
+    needsKnowledge,
+    needsCrops,
+  ].filter(Boolean).length;
+
+  if (toolCount > 1) {
+    responseType = "multi_tool";
+  } else if (needsWeather) {
+    responseType = "weather";
+  } else if (needsDiseaseAnalyses) {
+    responseType = "disease_history";
+  } else if (needsKnowledge) {
+    responseType = "agricultural_knowledge";
+  } else if (needsCrops) {
+    responseType = "crop_information";
+  }
+
+  // --------------------------------------------------
+  // AGENT REASONING
+  // --------------------------------------------------
+
+  const reasoning = [];
+
+  if (needsWeather) {
+    reasoning.push(
+      "Weather-related information was detected in the farmer's question."
+    );
+  }
+
+  if (needsDiseaseAnalyses) {
+    reasoning.push(
+      "The farmer's question refers to previous disease analysis or diagnosis information."
+    );
+  }
+
+  if (needsKnowledge) {
+    reasoning.push(
+      "Agricultural knowledge was detected as relevant to the farmer's question."
+    );
+  }
+
+  if (needsCrops) {
+    reasoning.push(
+      "The farmer's registered crop or farm information was detected as relevant."
+    );
+  }
+
+  if (reasoning.length === 0) {
+    reasoning.push(
+      "No specific agent tool was identified from the available decision keywords."
+    );
+  }
+
   return {
     needsKnowledge,
     needsCrops,
     needsDiseaseAnalyses,
     needsWeather,
     responseType,
+    reasoning,
   };
 };
