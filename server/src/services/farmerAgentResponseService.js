@@ -1,11 +1,12 @@
 export const buildFarmerAgentContext = (agentResult) => {
   const {
-    knowledge = [],
-    crops = [],
-    diseaseAnalyses = [],
-    weather = null,
-    toolErrors = [],
-  } = agentResult;
+  knowledge = [],
+  crops = [],
+  diseaseAnalyses = [],
+  weather = null,
+  toolErrors = [],
+  toolsUsed = [],
+} = agentResult;
 
   // The response type is part of the agent decision.
   const responseType =
@@ -162,6 +163,11 @@ Status: ${error.message}`
 
   // --------------------------------------------------
   // RETURN AGENT CONTEXT
+  const toolsUsedContext =
+  toolsUsed.length > 0
+    ? toolsUsed.join(", ")
+    : "No agent tools were used.";
+  
   // --------------------------------------------------
   return {
     responseType,

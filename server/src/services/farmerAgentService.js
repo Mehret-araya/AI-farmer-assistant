@@ -31,11 +31,14 @@ export const runFarmerAgent = async ({
   let knowledge = [];
 
   const toolErrors = [];
+  const toolsUsed = [];
 
   // Call only the tools required by the decision.
   if (decision.needsCrops) {
-    try {
-      crops = await getFarmerCrops(userId);
+  toolsUsed.push("crops");
+
+  try {
+    crops = await getFarmerCrops(userId);
     } catch (error) {
       console.error("Farmer crops tool error:", error.message);
 
@@ -45,10 +48,13 @@ export const runFarmerAgent = async ({
       });
     }
   }
-
   if (decision.needsDiseaseAnalyses) {
-    try {
-      diseaseAnalyses = await getFarmerDiseaseAnalyses(userId);
+  toolsUsed.push("diseaseAnalyses");
+
+  try {
+    diseaseAnalyses = await getFarmerDiseaseAnalyses(userId);
+
+  
     } catch (error) {
       console.error(
         "Farmer disease analysis tool error:",
@@ -64,8 +70,10 @@ export const runFarmerAgent = async ({
   }
 
   if (decision.needsWeather) {
-    try {
-      weather = await getFarmerWeather(userId);
+  toolsUsed.push("weather");
+
+  try {
+    weather = await getFarmerWeather(userId);
     } catch (error) {
       console.error("Farmer weather tool error:", error.message);
 
@@ -77,8 +85,10 @@ export const runFarmerAgent = async ({
   }
 
   if (decision.needsKnowledge) {
-    try {
-      knowledge = await getAgriculturalKnowledge({
+  toolsUsed.push("knowledge");
+
+  try {
+    knowledge = await getAgriculturalKnowledge({
         question: cleanQuestion,
         language,
       });
@@ -96,10 +106,11 @@ export const runFarmerAgent = async ({
     }
   }
 
-  return {
+ return {
   question: cleanQuestion,
   language,
   decision,
+  toolsUsed,
   crops,
   diseaseAnalyses,
   weather,
