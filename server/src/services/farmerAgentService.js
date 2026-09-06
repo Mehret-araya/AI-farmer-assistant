@@ -23,8 +23,7 @@ export const runFarmerAgent = async ({
   const cleanQuestion = question.trim();
 
   // Decide which information the agent needs.
-  const decision = decideAgentNeeds(cleanQuestion);
-
+  const decision = decideAgentNeeds(cleanQuestion, language);
   let crops = [];
   let diseaseAnalyses = [];
   let weather = null;
