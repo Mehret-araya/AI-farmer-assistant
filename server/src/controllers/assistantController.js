@@ -43,6 +43,8 @@ export const askFarmerAssistant = async (req, res) => {
   toolErrorContext,
   executionStatus,
   toolsUsedContext,
+  toolResultsContext,
+
   reasoningContext,
 } = buildFarmerAgentContext(agentResult);
 
@@ -92,6 +94,10 @@ Agent decision reasoning:
 ${reasoningContext}
 
 Agent tool status:
+
+${toolResultsContext}
+
+Agent tool errors:
 
 ${toolErrorContext}
 Answer the farmer in their preferred language.

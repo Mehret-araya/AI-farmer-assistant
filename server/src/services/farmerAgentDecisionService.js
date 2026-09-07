@@ -8,24 +8,29 @@ const languageKeywords = {
       "humidity",
       "wind",
     ],
-
-    diseaseHistory: [
-      "recent disease",
-      "recent diseases",
-      "recent diagnosis",
-      "recent diagnoses",
-      "detected disease",
-      "detected diseases",
-      "disease analysis",
-      "disease analyses",
-      "my disease",
-      "my diseases",
-      "my diagnosis",
-      "my diagnoses",
-      "what diseases were recently detected",
-      "diseases were recently detected",
-      "recently detected diseases",
-    ],
+diseaseHistory: [
+  "recent disease",
+  "recent diseases",
+  "recent diagnosis",
+  "recent diagnoses",
+  "detected disease",
+  "detected diseases",
+  "disease analysis",
+  "disease analyses",
+  "my disease",
+  "my diseases",
+  "my diagnosis",
+  "my diagnoses",
+  "what diseases were recently detected",
+  "diseases were recently detected",
+  "recently detected diseases",
+  "what disease was detected",
+  "disease was detected",
+  "what disease was found",
+  "disease was found",
+  "detected disease",
+],
+    
 
     crops: [
       "my crop",
@@ -75,13 +80,16 @@ const languageKeywords = {
     ],
 
     crops: [
-      "ሰብሎቼ",
-      "ሰብል",
-      "ቲማቲሞቼ",
-      "ቲማቲም",
-      "እርሻዬ",
-      "መስኬ",
-    ],
+  "ሰብሎቼ",
+  "ሰብሎች",
+  "ሰብል",
+  "ምን ምን ናቸው",
+  "የእኔ ሰብሎች",
+  "ቲማቲሞቼ",
+  "ቲማቲም",
+  "እርሻዬ",
+  "መስኬ",
+],
 
     knowledge: [
       "ምልክት",
@@ -117,13 +125,16 @@ const languageKeywords = {
     ],
 
     crops: [
-      "mazao yangu",
-      "zao langu",
-      "nyanya zangu",
-      "nyanya yangu",
-      "shamba langu",
-      "mashamba yangu",
-    ],
+  "mazao yangu",
+  "mazao",
+  "zao langu",
+  "zao",
+  "nina mazao gani",
+  "nyanya zangu",
+  "nyanya yangu",
+  "shamba langu",
+  "mashamba yangu",
+],
 
     knowledge: [
       "dalili",
@@ -159,13 +170,17 @@ const languageKeywords = {
     ],
 
     crops: [
-      "मेरी फसल",
-      "मेरी फसलें",
-      "मेरे टमाटर",
-      "मेरा टमाटर",
-      "मेरा खेत",
-      "मेरे खेत",
-    ],
+  "मेरी फसल",
+  "मेरी फसलें",
+  "फसलें",
+  "फसल",
+  "कौन सी फसलें हैं",
+  "मेरे पास कौन सी फसलें हैं",
+  "मेरे टमाटर",
+  "मेरा टमाटर",
+  "मेरा खेत",
+  "मेरे खेत",
+],
 
     knowledge: [
       "लक्षण",
@@ -200,14 +215,16 @@ const languageKeywords = {
     ],
 
     crops: [
-      "mi cultivo",
-      "mis cultivos",
-      "mis tomates",
-      "mi tomate",
-      "mi granja",
-      "mi campo",
-    ],
-
+  "mi cultivo",
+  "mis cultivos",
+  "cultivos",
+  "cultivo",
+  "qué cultivos tengo",
+  "mis tomates",
+  "mi tomate",
+  "mi granja",
+  "mi campo",
+],
     knowledge: [
       "síntoma",
       "síntomas",
@@ -321,6 +338,11 @@ export const decideAgentNeeds = (question, language = "en") => {
   "what is the best way",
   "how can i",
   "what should we do",
+  "will the weather affect",
+  "weather affect my crop",
+  "weather affect my crops",
+  "weather affect my tomato",
+  "weather affect my tomatoes",
 ];
 
   const hasStrongKnowledgeIntent =
@@ -328,14 +350,34 @@ export const decideAgentNeeds = (question, language = "en") => {
   strongKnowledgePhrases.some((phrase) =>
     text.includes(phrase)
   );
+  
+const hasDiseaseActionIntent =
+  needsDiseaseAnalyses &&
+  (
+    text.includes("what should i do") ||
+    text.includes("what do i do") ||
+    text.includes("how should i") ||
+    text.includes("how do i") ||
+    text.includes("what can i do") ||
+    text.includes("what is the best way") ||
+    text.includes("how can i") ||
+    text.includes("what should we do")
+  );
 
+  if (hasStrongKnowledgeIntent || hasDiseaseActionIntent) {
+  needsKnowledge = true;
+}
   // If the question is only about the farmer's own
   // crops and does not contain a strong agricultural
   // knowledge request, do not retrieve RAG knowledge.
-  if (needsCrops && !hasStrongKnowledgeIntent) {
-    needsKnowledge = false;
-  }
-
+ 
+if (
+  needsCrops &&
+  !hasStrongKnowledgeIntent &&
+  !hasDiseaseActionIntent
+) {
+  needsKnowledge = false;
+}
   // --------------------------------------------------
   // RESPONSE TYPE
   // --------------------------------------------------

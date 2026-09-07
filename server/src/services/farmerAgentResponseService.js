@@ -1,13 +1,13 @@
 export const buildFarmerAgentContext = (agentResult) => {
-  
-const {
-  knowledge = [],
-  crops = [],
-  diseaseAnalyses = [],
-  weather = null,
-  toolErrors = [],
-  toolsUsed = [],
-} = agentResult;
+  const {
+    knowledge = [],
+    crops = [],
+    diseaseAnalyses = [],
+    weather = null,
+    toolErrors = [],
+    toolsUsed = [],
+    toolResults = {},
+  } = agentResult;
   // The response type is part of the agent decision.
   const responseType =
     agentResult.decision?.responseType || "general";
@@ -167,13 +167,22 @@ Status: ${error.message}`
   toolsUsed.length > 0
     ? toolsUsed.join(", ")
     : "No agent tools were used.";
+
+    const toolResultsContext = `
+Crops tool: ${toolResults.crops || "not_selected"}
+Disease analyses tool: ${
+  toolResults.diseaseAnalyses || "not_selected"
+}
+Weather tool: ${toolResults.weather || "not_selected"}
+Knowledge tool: ${toolResults.knowledge || "not_selected"}
+`;
     const reasoningContext =
   agentResult.decision?.reasoning?.length > 0
     ? agentResult.decision.reasoning.join("\n")
     : "No specific agent reasoning was recorded.";
   
   // --------------------------------------------------
-  return {
+ return {
   responseType,
   responseInstruction,
   knowledgeContext,
@@ -183,6 +192,7 @@ Status: ${error.message}`
   toolErrorContext,
   executionStatus,
   toolsUsedContext,
+  toolResultsContext,
   reasoningContext,
 };
 };
