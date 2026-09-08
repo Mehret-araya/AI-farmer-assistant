@@ -7,6 +7,7 @@ import {
 
 import { decideAgentNeeds } from "./farmerAgentDecisionService.js";
 import { validateAgentDecision } from "./farmerAgentSafetyService.js";
+
 import {
   validateFarmerAgentToolResult,
 } from "./farmerAgentResultValidationService.js";
@@ -28,6 +29,7 @@ export const runFarmerAgent = async ({
 
   // Decide which information the agent needs.
   const decision = decideAgentNeeds(cleanQuestion, language);
+
   const safetyCheck = validateAgentDecision(decision);
 
   let crops = [];
@@ -36,169 +38,174 @@ export const runFarmerAgent = async ({
   let knowledge = [];
 
   const toolErrors = [];
+  const toolsUsed = [];
 
-const toolsUsed = [];
+  const toolResults = {
+    crops: "not_selected",
+    diseaseAnalyses: "not_selected",
+    weather: "not_selected",
+    knowledge: "not_selected",
+  };
 
-const toolResults = {
-  crops: "not_selected",
-  diseaseAnalyses: "not_selected",
-  weather: "not_selected",
-  knowledge: "not_selected",
-};
   // Call only the tools required by the decision.
   if (decision.needsCrops) {
-  toolsUsed.push("crops");
-  toolResults.crops = "running";
-try {
-  crops = await getFarmerCrops(userId);
+    toolsUsed.push("crops");
+    toolResults.crops = "running";
 
-  const validation = validateFarmerAgentToolResult(
-    "crops",
-    crops
-  );
+    try {
+      crops = await getFarmerCrops(userId);
 
-  if (!validation.valid) {
-    throw new Error(validation.message);
+      const validation = validateFarmerAgentToolResult(
+        "crops",
+        crops
+      );
+
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+
+      toolResults.crops = "success";
+    } catch (error) {
+      console.error(
+        "Farmer crops tool error:",
+        error.message
+      );
+
+      toolResults.crops = "failed";
+      crops = [];
+
+      toolErrors.push({
+        tool: "crops",
+        message:
+          "Crop information is temporarily unavailable.",
+      });
+    }
   }
 
-  toolResults.crops = "success";
-} catch (error) {
-  console.error("Farmer crops tool error:", error.message);
-  toolResults.crops = "failed";
-
-  crops = [];
-
-  toolErrors.push({
-    tool: "crops",
-    message: "Crop information is temporarily unavailable.",
-  });
-}
- 
   if (decision.needsDiseaseAnalyses) {
-  toolsUsed.push("diseaseAnalyses");
-  toolResults.diseaseAnalyses = "running";
+    toolsUsed.push("diseaseAnalyses");
+    toolResults.diseaseAnalyses = "running";
 
-  try {
-  diseaseAnalyses = await getFarmerDiseaseAnalyses(userId);
+    try {
+      diseaseAnalyses =
+        await getFarmerDiseaseAnalyses(userId);
 
-  const validation = validateFarmerAgentToolResult(
-    "diseaseAnalyses",
-    diseaseAnalyses
-  );
+      const validation =
+        validateFarmerAgentToolResult(
+          "diseaseAnalyses",
+          diseaseAnalyses
+        );
 
-  if (!validation.valid) {
-    throw new Error(validation.message);
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+
+      toolResults.diseaseAnalyses = "success";
+    } catch (error) {
+      console.error(
+        "Farmer disease analyses tool error:",
+        error.message
+      );
+
+      toolResults.diseaseAnalyses = "failed";
+      diseaseAnalyses = [];
+
+      toolErrors.push({
+        tool: "diseaseAnalyses",
+        message:
+          "Disease analysis information is temporarily unavailable.",
+      });
+    }
   }
 
-  toolResults.diseaseAnalyses = "success";
-} catch (error) {
-  console.error(
-    "Farmer disease analyses tool error:",
-    error.message
-  );
+  if (decision.needsWeather) {
+    toolsUsed.push("weather");
+    toolResults.weather = "running";
 
-  toolResults.diseaseAnalyses = "failed";
+    try {
+      weather = await getFarmerWeather(userId);
 
-  diseaseAnalyses = [];
+      const validation =
+        validateFarmerAgentToolResult(
+          "weather",
+          weather
+        );
 
-  toolErrors.push({
-    tool: "diseaseAnalyses",
-    message:
-      "Disease analysis information is temporarily unavailable.",
-  });
-}
-}
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
 
-  
-if (decision.needsWeather) {
-  toolsUsed.push("weather");
-  toolResults.weather = "running";
+      toolResults.weather = "success";
+    } catch (error) {
+      console.error(
+        "Farmer weather tool error:",
+        error.message
+      );
 
- try {
-  weather = await getFarmerWeather(userId);
+      toolResults.weather = "failed";
+      weather = null;
 
-  const validation = validateFarmerAgentToolResult(
-    "weather",
-    weather
-  );
-
-  if (!validation.valid) {
-    throw new Error(validation.message);
+      toolErrors.push({
+        tool: "weather",
+        message:
+          "Weather information is temporarily unavailable.",
+      });
+    }
   }
 
-  toolResults.weather = "success";
-} catch (error) {
-  console.error(
-    "Farmer weather tool error:",
-    error.message
-  );
-
-  toolResults.weather = "failed";
-
-  weather = null;
-
-  toolErrors.push({
-    tool: "weather",
-    message: "Weather information is temporarily unavailable.",
-  });
-}
-}
   if (decision.needsKnowledge) {
-  toolsUsed.push("knowledge");
-  toolResults.knowledge = "running";
+    toolsUsed.push("knowledge");
+    toolResults.knowledge = "running";
 
-  try {
-  knowledge = await getAgriculturalKnowledge({
-    question,
-    language,
-    disease,
-  });
+    try {
+      knowledge = await getAgriculturalKnowledge({
+        question: cleanQuestion,
+        language,
+      });
 
-  const validation = validateFarmerAgentToolResult(
-    "knowledge",
-    knowledge
-  );
+      const validation =
+        validateFarmerAgentToolResult(
+          "knowledge",
+          knowledge
+        );
 
-  if (!validation.valid) {
-    throw new Error(validation.message);
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+
+      toolResults.knowledge = "success";
+    } catch (error) {
+      console.error(
+        "Farmer agricultural knowledge tool error:",
+        error.message
+      );
+
+      toolResults.knowledge = "failed";
+      knowledge = [];
+
+      toolErrors.push({
+        tool: "knowledge",
+        message:
+          "Agricultural knowledge is temporarily unavailable.",
+      });
+    }
   }
 
-  toolResults.knowledge = "success";
-} catch (error) {
-  console.error(
-    "Farmer agricultural knowledge tool error:",
-    error.message
-  );
-
-  toolResults.knowledge = "failed";
-
-  knowledge = [];
-
-  toolErrors.push({
-    tool: "knowledge",
-    message:
-      "Agricultural knowledge is temporarily unavailable.",
-  });
-}
-
-    
-}
-return {
-  question: cleanQuestion,
-  language,
-  decision,
-  toolsUsed,
-  toolResults,
-  safetyCheck,
-  crops,
-  diseaseAnalyses,
-  weather,
-  knowledge,
-  toolErrors,
-  executionStatus:
-    toolErrors.length > 0
-      ? "partial_success"
-      : "success",
-};
-
+  return {
+    question: cleanQuestion,
+    language,
+    decision,
+    toolsUsed,
+    toolResults,
+    safetyCheck,
+    crops,
+    diseaseAnalyses,
+    weather,
+    knowledge,
+    toolErrors,
+    executionStatus:
+      toolErrors.length > 0
+        ? "partial_success"
+        : "success",
+  };
 };

@@ -9,14 +9,37 @@ import diseaseAnalysisRoutes from "./routes/diseaseAnalysisRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 import assistantRoutes from "./routes/assistantRoutes.js";
 import knowledgeRoutes from "./routes/knowledgeRoutes.js";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 dotenv.config();
 
 const app = express();
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later.",
+  },
+});
+
+app.use(globalLimiter);
 
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/crops", cropRoutes);
@@ -25,6 +48,7 @@ app.use("/disease-analysis", diseaseAnalysisRoutes);
 app.use("/weather", weatherRoutes);
 app.use("/assistant", assistantRoutes);
 app.use("/knowledge", knowledgeRoutes);
+app.use(helmet());
 // Test route
 app.get("/", (req, res) => {
   res.json({

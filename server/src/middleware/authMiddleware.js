@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -25,9 +26,7 @@ const protect = (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Ensure the verified token contains a user ID.
-    // The user ID must come from the verified JWT,
-    // not from the request body, URL, or query parameters.
+    // Ensure the verified token contains a user ID
     if (!decoded || !decoded.userId) {
       return res.status(401).json({
         success: false,
@@ -35,15 +34,23 @@ const protect = (req, res, next) => {
       });
     }
 
-    // Store only authenticated user information
-    // from the verified JWT on the request.
-    req.user = {
-      userId: decoded.userId,
-      role: decoded.role,
-    };
+    // Find the current user in the database
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User account not found",
+      });
+    }
+
+    // Store authenticated user information on the request
+    req.user = user;
 
     next();
   } catch (error) {
+    console.error("Authentication error:", error);
+
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",

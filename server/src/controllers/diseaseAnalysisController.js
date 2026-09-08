@@ -1,8 +1,11 @@
-
 import Crop from "../models/Crop.js";
 import CropImage from "../models/CropImage.js";
 import DiseaseAnalysis from "../models/DiseaseAnalysis.js";
 import { analyzeCropImage } from "../ai/aiGateway.js";
+import {
+  checkAndResetUsage,
+  incrementUsage,
+} from "../utils/usageLimit.js";
 
 // Analyze a crop image
 export const analyzeDisease = async (req, res) => {
@@ -36,13 +39,25 @@ export const analyzeDisease = async (req, res) => {
       });
     }
 
-    // 3. Send the image to the AI Gateway
-    const aiResult = await analyzeCropImage(
-  image.imageUrl,
-  crop.name
-);
+    // 3. Check monthly analysis usage limit
+    const usage = await checkAndResetUsage(req.user);
 
-    // 4. Save the analysis
+    if (!usage.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: "Monthly analysis limit reached",
+        remaining: usage.remaining,
+        limit: usage.limit,
+      });
+    }
+
+    // 4. Send the image to the AI Gateway
+    const aiResult = await analyzeCropImage(
+      image.imageUrl,
+      crop.name
+    );
+
+    // 5. Save the analysis
     const analysis = await DiseaseAnalysis.create({
       userId: req.user.userId,
       cropId: crop._id,
@@ -51,11 +66,12 @@ export const analyzeDisease = async (req, res) => {
       confidence: aiResult.confidence,
       explanation: aiResult.message || "",
       recommendation: aiResult.recommendation || "",
-
-
     });
 
-    // 5. Return the result
+    // 6. Count this successful analysis
+    await incrementUsage(req.user);
+
+    // 7. Return the result
     return res.status(201).json({
       success: true,
       message: "Crop image analyzed successfully",
@@ -106,4 +122,3 @@ export const getCropAnalyses = async (req, res) => {
     });
   }
 };
-
