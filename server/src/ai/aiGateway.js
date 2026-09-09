@@ -1,9 +1,11 @@
+import "dotenv/config";
 import OpenAI from "openai";
 import cropDiseaseConfig from "../config/cropDiseaseConfig.js";
-
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const MIN_CONFIDENCE = 0.5;
 
 const normalizePrediction = (prediction = {}, cropName) => {
   const cropConfig = cropDiseaseConfig[cropName];
@@ -14,13 +16,16 @@ const normalizePrediction = (prediction = {}, cropName) => {
       confidence: 0,
       message: "This crop is not currently supported.",
       recommendation: "Please select a supported crop.",
+      severity: "unknown",
     };
   }
 
   const allowedDiseases = Object.keys(cropConfig.diseases);
 
-  const disease = allowedDiseases.includes(prediction.disease)
-    ? prediction.disease
+  const rawDisease = prediction.disease;
+
+  const disease = allowedDiseases.includes(rawDisease)
+    ? rawDisease
     : "Uncertain";
 
   const confidence = Number(prediction.confidence);
@@ -31,6 +36,26 @@ const normalizePrediction = (prediction = {}, cropName) => {
     confidence <= 1
       ? confidence
       : 0;
+
+  // MVP rule:
+  // Any prediction below 50% confidence is considered unreliable.
+  if (
+    disease !== "Uncertain" &&
+    normalizedConfidence < MIN_CONFIDENCE
+  ) {
+    const uncertainInfo = cropConfig.diseases.Uncertain;
+
+    return {
+      disease: "Uncertain",
+      confidence: normalizedConfidence,
+      message:
+        "The image does not provide enough visual evidence for a reliable disease assessment.",
+      recommendation:
+        uncertainInfo?.recommendation ||
+        "Take a clearer photo showing the affected plant parts and try again.",
+      severity: uncertainInfo?.severity || "unknown",
+    };
+  }
 
   const diseaseInfo =
     cropConfig.diseases[disease] ||
@@ -76,6 +101,10 @@ export const analyzeCropImage = async (
     );
   }
 
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured");
+  }
+
   const response = await client.responses.create({
     model:
       process.env.OPENAI_VISION_MODEL ||
@@ -97,12 +126,14 @@ Uncertain
 Rules:
 1. Return ONLY valid JSON.
 2. Do not invent diseases outside the allowed list.
-3. If the image is unclear, unrelated, or insufficient for a reliable classification, return Uncertain.
+3. If the image is unclear, unrelated, or insufficient for reliable classification, return Uncertain.
 4. Do not claim certainty when visual evidence is weak.
 5. Confidence must be a number between 0 and 1.
-6. Keep the explanation concise and based only on visible evidence.
-7. Recommendations must be conservative and practical.
-8. Do not invent pesticide names, dosages, fertilizer rates, or unsupported treatments.
+6. If confidence is below 0.50, return Uncertain.
+7. Keep the explanation concise and based only on visible evidence.
+8. Recommendations must be conservative and practical.
+9. Do not invent pesticide names, dosages, fertilizer rates, or unsupported treatments.
+10. Do not diagnose from information that is not visible in the image.
 
 JSON format:
 {
