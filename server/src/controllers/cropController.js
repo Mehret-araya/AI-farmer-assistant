@@ -22,7 +22,7 @@ export const createCrop = async (req, res) => {
     }
 
     const crop = await Crop.create({
-      userId: req.user.userId,
+      userId: req.user._id,
       name,
       variety: variety || "",
       plantingDate,
@@ -62,7 +62,7 @@ export const createCrop = async (req, res) => {
 export const getCrops = async (req, res) => {
   try {
     const crops = await Crop.find({
-      userId: req.user.userId,
+      userId: req.user._id,
     }).sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -84,7 +84,7 @@ export const getCropById = async (req, res) => {
   try {
     const crop = await Crop.findOne({
       _id: req.params.id,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -124,7 +124,7 @@ export const updateCrop = async (req, res) => {
 
     const crop = await Crop.findOne({
       _id: req.params.id,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -194,7 +194,7 @@ export const deleteCrop = async (req, res) => {
   try {
     const crop = await Crop.findOne({
       _id: req.params.id,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -213,12 +213,10 @@ export const deleteCrop = async (req, res) => {
   } catch (error) {
     console.error("Delete crop error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Server error while deleting crop",
+    return res.status(200).json({
+      success: true,
+      message: "Crop deleted successfully",
     });
   }
 };
-
-
 

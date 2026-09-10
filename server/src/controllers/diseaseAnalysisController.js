@@ -15,7 +15,7 @@ export const analyzeDisease = async (req, res) => {
     // 1. Check that the crop belongs to the logged-in user
     const crop = await Crop.findOne({
       _id: cropId,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -29,7 +29,7 @@ export const analyzeDisease = async (req, res) => {
     const image = await CropImage.findOne({
       _id: imageId,
       cropId: crop._id,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!image) {
@@ -59,7 +59,7 @@ export const analyzeDisease = async (req, res) => {
 
     // 5. Save the analysis
     const analysis = await DiseaseAnalysis.create({
-      userId: req.user.userId,
+      userId: req.user._id,
       cropId: crop._id,
       imageId: image._id,
       disease: aiResult.disease,
@@ -94,7 +94,7 @@ export const getCropAnalyses = async (req, res) => {
 
     const crop = await Crop.findOne({
       _id: cropId,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -106,7 +106,7 @@ export const getCropAnalyses = async (req, res) => {
 
     const analyses = await DiseaseAnalysis.find({
       cropId: crop._id,
-      userId: req.user.userId,
+      userId: req.user._id,
     }).sort({ createdAt: -1 });
 
     return res.status(200).json({

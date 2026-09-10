@@ -1,5 +1,5 @@
-
 import { uploadCropImage } from "../api/cropImage";
+
 import {
   getPendingImages,
   updateImageStatus,
@@ -21,7 +21,10 @@ export const syncPendingImages = async () => {
 
   for (const item of pendingImages) {
     try {
-      await updateImageStatus(item.id, "uploading");
+      await updateImageStatus(
+        item.id,
+        "uploading"
+      );
 
       await uploadCropImage(
         item.cropId,
@@ -40,8 +43,10 @@ export const syncPendingImages = async () => {
         error
       );
 
-      await updateImageStatus(item.id, "pending");
+      await updateImageStatus(
+        item.id,
+        "pending"
+      );
     }
   }
 };
-

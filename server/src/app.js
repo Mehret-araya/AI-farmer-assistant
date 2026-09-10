@@ -41,6 +41,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(helmet());
 app.use("/auth", authRoutes);
 app.use("/crops", cropRoutes);
 app.use("/crops", cropImageRoutes);
@@ -48,7 +49,6 @@ app.use("/disease-analysis", diseaseAnalysisRoutes);
 app.use("/weather", weatherRoutes);
 app.use("/assistant", assistantRoutes);
 app.use("/knowledge", knowledgeRoutes);
-app.use(helmet());
 // Test route
 app.get("/", (req, res) => {
   res.json({

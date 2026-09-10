@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AI Farmer Assistant</title>
+  <desc id="desc">A green field and sunrise icon for AI Farmer Assistant</desc>
+  <rect width="512" height="512" rx="96" fill="#166534"/>
+  <circle cx="360" cy="156" r="64" fill="#facc15"/>
+  <path fill="#bbf7d0" d="M0 334c82-58 145-72 226-27 66 37 116 32 171-4 43-28 76-31 115-14v223H0z"/>
+  <path fill="#4ade80" d="M0 390c74-39 135-40 204-4 76 40 132 39 197 3 43-24 78-28 111-17v154H0z"/>
+  <path fill="none" stroke="#14532d" stroke-linecap="round" stroke-width="22" d="M116 421c30-51 62-77 103-91m-50 111c5-45 26-74 61-95m-6 115c20-48 54-74 101-86"/>
+</svg>

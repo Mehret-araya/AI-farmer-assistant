@@ -17,7 +17,7 @@ export const uploadCropImage = async (req, res) => {
     // 2. Check that the crop belongs to the logged-in user
     const crop = await Crop.findOne({
       _id: cropId,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -48,7 +48,7 @@ export const uploadCropImage = async (req, res) => {
 
     // 4. Save Cloudinary information in MongoDB
     const cropImage = await CropImage.create({
-      userId: req.user.userId,
+      userId: req.user._id,
       cropId: crop._id,
       imageUrl: uploadResult.secure_url,
       publicId: uploadResult.public_id,
@@ -72,7 +72,6 @@ export const uploadCropImage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error while uploading crop image",
-      error: error.message,
     });
   }
 };
@@ -86,7 +85,7 @@ export const getCropImages = async (req, res) => {
     // Check that the crop belongs to the logged-in user
     const crop = await Crop.findOne({
       _id: cropId,
-      userId: req.user.userId,
+      userId: req.user._id,
     });
 
     if (!crop) {
@@ -99,7 +98,7 @@ export const getCropImages = async (req, res) => {
     // Get images for this crop
     const images = await CropImage.find({
       cropId: crop._id,
-      userId: req.user.userId,
+      userId: req.user._id,
     }).sort({ createdAt: -1 });
 
     return res.status(200).json({

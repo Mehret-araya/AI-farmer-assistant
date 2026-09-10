@@ -42,6 +42,16 @@ export const getPendingImages = async () => {
   );
 };
 
+export const getPendingImageCount = async () => {
+  const db = await dbPromise;
+
+  return db.countFromIndex(
+    STORE_NAME,
+    "status",
+    "pending"
+  );
+};
+
 export const updateImageStatus = async (id, status) => {
   const db = await dbPromise;
 
@@ -61,4 +71,3 @@ export const deleteQueuedImage = async (id) => {
 
   return db.delete(STORE_NAME, id);
 };
-

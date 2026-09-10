@@ -173,7 +173,7 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select("-password");
+    const user = await User.findById(req.user._id).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -211,7 +211,7 @@ export const getMe = async (req, res) => {
 
 export const exportMyData = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select("-password");
+    const user = await User.findById(req.user._id).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -251,7 +251,7 @@ export const exportMyData = async (req, res) => {
 
 export const deleteMyAccount = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user._id);
 
     if (!user) {
       return res.status(404).json({
@@ -260,7 +260,7 @@ export const deleteMyAccount = async (req, res) => {
       });
     }
 
-    await User.findByIdAndDelete(req.user.userId);
+    await User.findByIdAndDelete(req.user._id);
 
     return res.status(200).json({
       success: true,

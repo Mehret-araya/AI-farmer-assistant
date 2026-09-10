@@ -15,9 +15,7 @@ export const askFarmerAssistant = async (req, res) => {
     }
 
     // Get the farmer's preferred language.
-    const user = await User.findById(req.user.userId).select(
-      "language"
-    );
+    const user = await User.findById(req.user._id).select("language");
 
     const language = user?.language || "en";
 
@@ -25,7 +23,7 @@ export const askFarmerAssistant = async (req, res) => {
 
     // Let the farmer agent decide which information is needed.
     const agentResult = await runFarmerAgent({
-      userId: req.user.userId,
+      userId: req.user._id,
       question: question.trim(),
       language,
     });
@@ -33,20 +31,19 @@ export const askFarmerAssistant = async (req, res) => {
     console.log("Agent decision:", agentResult.decision);
 
     // Build the response context selected by the agent.
-   const {
-  responseType,
-  responseInstruction,
-  knowledgeContext,
-  cropContext,
-  diseaseContext,
-  weatherContext,
-  toolErrorContext,
-  executionStatus,
-  toolsUsedContext,
-  toolResultsContext,
-
-  reasoningContext,
-} = buildFarmerAgentContext(agentResult);
+    const {
+      responseType,
+      responseInstruction,
+      knowledgeContext,
+      cropContext,
+      diseaseContext,
+      weatherContext,
+      toolErrorContext,
+      executionStatus,
+      toolsUsedContext,
+      toolResultsContext,
+      reasoningContext,
+    } = buildFarmerAgentContext(agentResult);
 
     console.log("Agent response type:", responseType);
 
@@ -80,7 +77,6 @@ Current farm weather:
 
 ${weatherContext}
 
-
 Agent execution status:
 
 ${executionStatus}
@@ -100,6 +96,7 @@ ${toolResultsContext}
 Agent tool errors:
 
 ${toolErrorContext}
+
 Answer the farmer in their preferred language.
 
 The farmer's preferred language code is:
@@ -195,3 +192,4 @@ Do not allow the response type to override the safety rules above.
     });
   }
 };
+

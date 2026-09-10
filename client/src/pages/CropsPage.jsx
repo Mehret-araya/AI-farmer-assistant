@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createCrop,
   getCrops,
@@ -16,6 +16,7 @@ const SUPPORTED_CROPS = [
 ];
 
 function CropsPage() {
+  const formRef = useRef(null);
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -152,6 +153,10 @@ function CropsPage() {
 });
     setMessage("");
     setError("");
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   const handleDelete = async (cropId) => {
@@ -200,7 +205,7 @@ function CropsPage() {
         {editingCropId ? "Edit Crop" : "Add Crop"}
       </h2>
 
-      <form onSubmit={handleSubmit}>
+      <form ref={formRef} onSubmit={handleSubmit}>
         {/* Crop Type */}
         <div>
           <label htmlFor="name">

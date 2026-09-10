@@ -9,11 +9,13 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import CropsPage from "./pages/CropsPage";
 import useOfflineSync from "./hooks/useOfflineSync";
 import AssistantPage from "./pages/AssistantPage";
+import OfflineStatus from "./components/OfflineStatus";
 
 function App() {
   useOfflineSync();
   return (
     <BrowserRouter>
+      <OfflineStatus />
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
@@ -21,7 +23,6 @@ function App() {
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/assistant" element={<AssistantPage />} />
         <Route
   path="/weather"
   element={
