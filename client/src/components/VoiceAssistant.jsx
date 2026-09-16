@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../api/config";
 
 const getSpeechRecognition = () => {
   return (
@@ -35,6 +35,8 @@ const VoiceAssistant = ({ language = "en" }) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+
+    
   };
 }, []);
 

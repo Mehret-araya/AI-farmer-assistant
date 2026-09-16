@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000";
+import { API_URL } from "./config";
 
 export const createCrop = async (cropData, token) => {
   const response = await fetch(`${API_URL}/crops`, {
@@ -62,7 +62,7 @@ export const updateCrop = async (cropId, cropData, token) => {
     },
     body: JSON.stringify(cropData),
   });
-
+       
   const data = await response.json();
 
   if (!response.ok) {
@@ -77,7 +77,7 @@ export const deleteCrop = async (cropId, token) => {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
-    },
+    },   
   });
 
   const data = await response.json();

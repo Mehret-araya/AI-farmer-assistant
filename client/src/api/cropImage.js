@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "./config";
 
 // Upload a crop image
 export const uploadCropImage = async (
