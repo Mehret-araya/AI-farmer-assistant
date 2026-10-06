@@ -1,6 +1,7 @@
 function PrivacyPolicyPage() {
   return (
-    <div>
+    <div className="public-page policy-page">
+      <article className="policy-card">
       <h1>Privacy Policy</h1>
 
       <p>
@@ -94,6 +95,7 @@ function PrivacyPolicyPage() {
       <p>
         <strong>Last updated:</strong> August 28, 2026
       </p>
+      </article>
     </div>
   );
 }

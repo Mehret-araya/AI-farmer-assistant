@@ -58,6 +58,39 @@ diseaseHistory: [
       "late blight",
       "how to treat",
       "treatment",
+      "disease",
+      "blight",
+      "fungal",
+      "fungicide",
+      "pesticide",
+      "fertilizer",
+      "fertiliser",
+      "lime",
+      "soil",
+      "nutrient",
+      "pest",
+      "apply",
+      "application",
+      "spray",
+      "harvest",
+      "planting",
+      "germination",
+      "seedling",
+      "compost",
+      "mulch",
+      "prune",
+      "pruning",
+      "crop rotation",
+      "what is",
+      "what are",
+      "what causes",
+      "how to",
+      "how do",
+      "how can",
+      "why does",
+      "why is",
+      "what fertilizer",
+      "what pesticide",
     ],
   },
 
@@ -103,6 +136,21 @@ diseaseHistory: [
       "ዘግይቶ የሚከሰት ብላይት",
       "ሕክምና",
       "ማከም",
+      "ኖራ",
+      "ማዳበሪያ",
+      "አፈር",
+      "ፀረ-ተባይ",
+      "ፀረ-ፈንገስ",
+      "ተባይ",
+      "ፈንገስ",
+      "በሽታ",
+      "ምን ነው",
+      "እንዴት",
+      "ለምን",
+      "ምን ማዳበሪያ",
+      "እንዴት መጠቀም",
+      "እንዴት ይተገበራል",
+      "ምን ያደርጋል",
     ],
   },
 
@@ -296,6 +344,16 @@ export const decideAgentNeeds = (question, language = "en") => {
     keywords.knowledge
   );
 
+  // Amharic keyword literals in the legacy list are mojibake. Keep this
+  // disease-specific recognition here so those questions still reach RAG.
+  const isAmharicEarlyBlightQuestion =
+    language === "am" &&
+    text.includes("ብላይት") &&
+    (text.includes("ቀደምት") || text.includes("ምልክት"));
+  if (isAmharicEarlyBlightQuestion) {
+    needsKnowledge = true;
+  }
+
   // --------------------------------------------------
   // KNOWLEDGE INTENT REFINEMENT
   // --------------------------------------------------
@@ -343,13 +401,28 @@ export const decideAgentNeeds = (question, language = "en") => {
   "weather affect my crops",
   "weather affect my tomato",
   "weather affect my tomatoes",
+  "what is lime",
+  "what is fertilizer",
+  "what is a disease",
+  "what causes",
+  "how to apply",
+  "how to prevent",
+  "how to treat",
+  "how to grow",
+  "how to manage",
+  "how to control",
+  "what fertilizer",
+  "what pesticide",
+  "what fungicide",
+  "used for",
+  "used to",
 ];
 
   const hasStrongKnowledgeIntent =
   containsAny(text, strongKnowledgeKeywords) ||
   strongKnowledgePhrases.some((phrase) =>
     text.includes(phrase)
-  );
+  ) || isAmharicEarlyBlightQuestion;
   
 const hasDiseaseActionIntent =
   needsDiseaseAnalyses &&

@@ -59,12 +59,15 @@ function RegisterPage() {
   };
 
   return (
-    <div>
-      <h1>Create Your Farmer Account</h1>
+    <div className="public-page auth-page">
+      <div className="auth-card auth-card-wide">
+      <div className="auth-intro">
+        <span className="eyebrow">Start your field journal</span>
+        <h1>Create your account.</h1>
+        <p>Set up a simple home for your crops, images, and farm questions.</p>
+      </div>
 
-      <p>Register to use AI Farmer Assistant.</p>
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="form-stack">
         <div>
           <label htmlFor="name">Name</label>
           <br />
@@ -191,16 +194,18 @@ function RegisterPage() {
       </form>
 
       {message && (
-        <p style={{ color: "green" }}>
+        <p className="alert alert-success">
           {message}
         </p>
       )}
 
       {error && (
-        <p style={{ color: "red" }}>
+        <p className="alert alert-error">
           {error}
         </p>
       )}
+      <p className="auth-footnote">Already registered? <a href="/login">Sign in</a></p>
+      </div>
     </div>
   );
 }

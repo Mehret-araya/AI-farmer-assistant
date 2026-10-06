@@ -39,6 +39,7 @@ export function AuthProvider({ children }) {
         user,
         setUser,
         loading,
+        
         logout,
       }}
     >

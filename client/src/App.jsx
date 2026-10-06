@@ -10,12 +10,14 @@ import CropsPage from "./pages/CropsPage";
 import useOfflineSync from "./hooks/useOfflineSync";
 import AssistantPage from "./pages/AssistantPage";
 import OfflineStatus from "./components/OfflineStatus";
+import AppShell from "./components/AppShell";
 
 function App() {
   useOfflineSync();
   return (
     <BrowserRouter>
       <OfflineStatus />
+      <AppShell>
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
@@ -58,6 +60,7 @@ function App() {
   } 
 />
       </Routes>
+      </AppShell>
     </BrowserRouter>
   );
 }

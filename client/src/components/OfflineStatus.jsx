@@ -38,7 +38,7 @@ function OfflineStatus() {
   return (
     <div
       role="status"
-      className={`px-4 py-2 text-center text-sm font-medium ${
+      className={`offline-status px-4 py-2 text-center text-sm font-medium ${
         isOnline
           ? "bg-amber-100 text-amber-900"
           : "bg-red-100 text-red-900"

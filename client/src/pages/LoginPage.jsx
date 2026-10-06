@@ -51,60 +51,30 @@ function LoginPage() {
   };
 
   return (
-    <div>
-      <h1>Welcome Back</h1>
-
-      <p>Login to your AI Farmer Assistant account.</p>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <br />
-
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+    <div className="public-page auth-page">
+      <div className="auth-card">
+        <div className="auth-intro">
+          <span className="eyebrow">AI Farmer Assistant</span>
+          <h1>Welcome back.</h1>
+          <p>Sign in to keep your farm decisions moving forward.</p>
         </div>
-
-        <br />
-
-        <div>
-          <label htmlFor="password">Password</label>
-          <br />
-
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <br />
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-
-      {message && (
-        <p style={{ color: "green" }}>
-          {message}
-        </p>
-      )}
-
-      {error && (
-        <p style={{ color: "red" }}>
-          {error}
-        </p>
-      )}
+        <form onSubmit={handleSubmit} className="form-stack">
+          <div className="field-group">
+            <label htmlFor="email">Email address</label>
+            <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+          </div>
+          <div className="field-group">
+            <label htmlFor="password">Password</label>
+            <input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required />
+          </div>
+          <button type="submit" className="button button-primary button-wide" disabled={loading}>
+            {loading ? "Logging in..." : "Sign in"}
+          </button>
+        </form>
+        {message && <p className="alert alert-success">{message}</p>}
+        {error && <p className="alert alert-error">{error}</p>}
+        <p className="auth-footnote">New here? <a href="/register">Create an account</a></p>
+      </div>
     </div>
   );
 }

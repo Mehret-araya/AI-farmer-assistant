@@ -1,11 +1,11 @@
 import { askAssistant } from "../ai/assistantClient.js";
-import User from "../models/User.js";
 import { runFarmerAgent } from "../services/farmerAgentService.js";
 import { buildFarmerAgentContext } from "../services/farmerAgentResponseService.js";
 
 export const askFarmerAssistant = async (req, res) => {
   try {
     const { question } = req.body;
+    console.log("[assistant-debug] req.body.question:", question);
 
     if (!question || !question.trim()) {
       return res.status(400).json({
@@ -14,12 +14,14 @@ export const askFarmerAssistant = async (req, res) => {
       });
     }
 
-    // Get the farmer's preferred language.
-    const user = await User.findById(req.user._id).select("language");
+    // Authentication middleware loads the current user's saved preferences.
+    const supportedLanguages = new Set(["en", "am", "sw", "hi", "es"]);
+    const language = supportedLanguages.has(req.user?.language)
+      ? req.user.language
+      : "en";
 
-    const language = user?.language || "en";
-
-    console.log("Assistant language:", language);
+    console.log("[assistant-debug] req.user.language:", req.user?.language);
+    console.log("[assistant-debug] effective language:", language);
 
     // Let the farmer agent decide which information is needed.
     const agentResult = await runFarmerAgent({
@@ -28,7 +30,16 @@ export const askFarmerAssistant = async (req, res) => {
       language,
     });
 
-    console.log("Agent decision:", agentResult.decision);
+    console.log("[assistant-debug] detected crop/disease/intent:", {
+      question: question.trim(),
+      cropTerms: question.includes(String.fromCodePoint(0x1272, 0x121b, 0x1272, 0x121d)) ? ["Tomato"] : [],
+      diseaseTerms: question.includes(String.fromCodePoint(0x1265, 0x120b, 0x12ed, 0x1275)) ? ["Early Blight"] : [],
+      intent: agentResult.decision,
+    });
+    console.log("[assistant-debug] retrieved knowledge count/titles:", {
+      count: agentResult.knowledge.length,
+      titles: agentResult.knowledge.map((item) => item.title),
+    });
 
     // Build the response context selected by the agent.
     const {
@@ -45,131 +56,44 @@ export const askFarmerAssistant = async (req, res) => {
       reasoningContext,
     } = buildFarmerAgentContext(agentResult);
 
-    console.log("Agent response type:", responseType);
+    console.log("[assistant-debug] final context passed to assistant:",
+      JSON.stringify({
+        responseType,
+        responseInstruction,
+        retrievedAgriculturalKnowledge: knowledgeContext,
+        farmerCropInformation: cropContext,
+        diseaseAnalysisInformation: diseaseContext,
+        weatherInformation: weatherContext,
+        executionStatus,
+        toolsUsed: toolsUsedContext,
+        toolResults: toolResultsContext,
+        toolErrors: toolErrorContext,
+        reasoning: reasoningContext,
+      }, null, 2)
+    );
 
     // Send the selected context and response instruction
     // to the existing AI response generator.
-    const contextualQuestion = `
-You are an agricultural assistant helping a farmer.
+    const assistantContext = {
+      responseType,
+      responseInstruction,
+      retrievedAgriculturalKnowledge: knowledgeContext,
+      farmerCropInformation: cropContext,
+      diseaseAnalysisInformation: diseaseContext,
+      weatherInformation: weatherContext,
+      executionStatus,
+      toolsUsed: toolsUsedContext,
+      toolResults: toolResultsContext,
+      toolErrors: toolErrorContext,
+      reasoning: reasoningContext,
+    };
 
-The farmer agent has analyzed the question and selected the
-following response type:
-
-${responseType}
-
-Response priority:
-
-${responseInstruction}
-
-Relevant agricultural knowledge:
-
-${knowledgeContext}
-
-Farmer's crop information:
-
-${cropContext}
-
-Recent disease analysis information:
-
-${diseaseContext}
-
-Current farm weather:
-
-${weatherContext}
-
-Agent execution status:
-
-${executionStatus}
-
-Agent tools used:
-
-${toolsUsedContext}
-
-Agent decision reasoning:
-
-${reasoningContext}
-
-Agent tool status:
-
-${toolResultsContext}
-
-Agent tool errors:
-
-${toolErrorContext}
-
-Answer the farmer in their preferred language.
-
-The farmer's preferred language code is:
-
-${language}
-
-Language codes:
-
-en = English
-am = Amharic
-sw = Swahili
-hi = Hindi
-es = Spanish
-
-Do not answer in English when the farmer's preferred language is another supported language.
-
-Farmer's question:
-
-${question.trim()}
-
-Give practical and safe agricultural advice.
-
-Follow the response priority selected by the farmer agent.
-
-Use the relevant agricultural knowledge as a trusted reference.
-
-Use the farmer's crop information, disease-analysis information,
-and weather information only when relevant to the farmer's question.
-
-Do not invent facts about the farmer's farm.
-
-Use only the retrieved agricultural knowledge for disease symptoms,
-prevention, and treatment advice.
-
-Do not add disease facts that are not supported by the retrieved
-agricultural knowledge.
-
-Do not invent medications, pesticides, fertilizers, treatments,
-dosages, or application instructions.
-
-Never claim that a disease is definitely diagnosed unless a verified
-disease analysis explicitly confirms it.
-
-If the available information does not support a treatment or
-recommendation, say that the available information is insufficient.
-
-Do not tell the farmer to see a human doctor for a crop problem.
-If professional agricultural help is needed, recommend a qualified
-agricultural professional or agricultural extension worker.
-
-Answer primarily in the farmer's selected language.
-Do not unnecessarily repeat the answer in English.
-
-Do not assume that the farmer's crops are healthy unless the
-farmer's information or a disease analysis explicitly states this.
-
-If the available information is insufficient, clearly say
-what additional information is needed.
-
-If a disease analysis has low confidence or is "Uncertain",
-do not present it as a confirmed diagnosis.
-
-Only use disease information that is relevant to the farmer's question.
-
-If the agent execution status is "partial_success", do not
-pretend that unavailable information was retrieved. Clearly state
-that the relevant information is currently unavailable when it
-matters to the farmer's question.
-
-Do not allow the response type to override the safety rules above.
-`;
-
-    const answer = await askAssistant(contextualQuestion);
+    const answer = await askAssistant(
+      question.trim(),
+      assistantContext,
+      language,
+      agentResult.knowledge
+    );
 
     // Return the agricultural knowledge sources used by the agent.
     const sources = agentResult.knowledge.map((knowledge) => ({

@@ -10,7 +10,7 @@ const checkDimension = async () => {
 
     const knowledge = await AgriculturalKnowledge.findOne({
       embedding: { $exists: true, $ne: [] },
-    });
+    });       
 
     if (!knowledge) {
       console.log("No embedding found.");
